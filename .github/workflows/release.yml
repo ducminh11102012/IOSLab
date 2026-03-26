@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*.*.*"
+  workflow_dispatch:
 
 env:
   IOSLAB_SIMULATOR_MOCK: ${{ vars.IOSLAB_SIMULATOR_MOCK || 'false' }}
