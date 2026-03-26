@@ -5,6 +5,11 @@ log() {
   printf '[ioslab-build] %s\n' "$1"
 }
 
+fail() {
+  printf '[ioslab-build] ERROR: %s\n' "$1" >&2
+  exit 1
+}
+
 REPO_URL="${1:-}"
 WORKDIR="${2:-}"
 IOSLAB_SIMULATOR_MOCK="${IOSLAB_SIMULATOR_MOCK:-false}"
@@ -19,6 +24,8 @@ else
 fi
 
 DIST_DIR="$ROOT_DIR/dist"
+PROJECT_PATH="$ROOT_DIR/macos-app/IOSLabDashboard.xcodeproj"
+SCHEME_NAME="IOSLabDashboard"
 mkdir -p "$DIST_DIR"
 
 log "Using root directory: $ROOT_DIR"
@@ -40,32 +47,41 @@ log "Installing CLI dependencies"
   npm run build
 )
 
-log "Building dashboard"
-if command -v xcodebuild >/dev/null 2>&1 && [[ "$(uname -s)" == "Darwin" ]] && [[ -f "$ROOT_DIR/macos-app/IOSLabDashboard.xcodeproj/project.pbxproj" ]]; then
-  (
-    cd "$ROOT_DIR/macos-app"
-    xcodebuild -project IOSLabDashboard.xcodeproj -scheme IOSLabDashboard -configuration Release -derivedDataPath .build/release
-  )
-
-  APP_PATH="$ROOT_DIR/macos-app/.build/release/Build/Products/Release/IOSLabDashboard.app"
-  if [[ -d "$APP_PATH" ]]; then
-    log "Packaging dashboard app bundle"
-    ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$DIST_DIR/IOSLabDashboard.zip"
-  else
-    log "Expected app bundle not found; creating fallback zip from dashboard sources"
-    (
-      cd "$ROOT_DIR/macos-app"
-      zip -r "$DIST_DIR/IOSLabDashboard.zip" IOSLabDashboard >/dev/null
-    )
-  fi
-else
-  log "xcodebuild project unavailable in this environment; running swift package build fallback"
-  (
-    cd "$ROOT_DIR/macos-app"
-    swift build
-    zip -r "$DIST_DIR/IOSLabDashboard.zip" IOSLabDashboard >/dev/null
-  )
+log "Validating macOS/Xcode environment"
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  fail "This dashboard build requires macOS (uname -s returned $(uname -s))"
 fi
+
+if ! command -v xcodebuild >/dev/null 2>&1; then
+  fail "xcodebuild not found on this machine"
+fi
+
+if [[ ! -d "$PROJECT_PATH" ]]; then
+  fail "Expected project file not found at macos-app/IOSLabDashboard.xcodeproj"
+fi
+
+if [[ ! -f "$PROJECT_PATH/project.pbxproj" ]]; then
+  fail "Project exists but project.pbxproj is missing at macos-app/IOSLabDashboard.xcodeproj/project.pbxproj"
+fi
+
+log "Building dashboard with xcodebuild (scheme: $SCHEME_NAME)"
+(
+  cd "$ROOT_DIR/macos-app"
+  xcodebuild \
+    -project IOSLabDashboard.xcodeproj \
+    -scheme "$SCHEME_NAME" \
+    -configuration Release \
+    -derivedDataPath .build/release \
+    build
+)
+
+APP_PATH="$ROOT_DIR/macos-app/.build/release/Build/Products/Release/IOSLabDashboard.app"
+if [[ ! -d "$APP_PATH" ]]; then
+  fail "xcodebuild completed but expected app bundle is missing at $APP_PATH"
+fi
+
+log "Packaging dashboard app bundle"
+ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$DIST_DIR/IOSLabDashboard.zip"
 
 log "Build artifacts generated in: $DIST_DIR"
 ls -lah "$DIST_DIR"
