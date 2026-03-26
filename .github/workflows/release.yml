@@ -1,0 +1,60 @@
+name: ioslab-release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+env:
+  IOSLAB_SIMULATOR_MOCK: ${{ vars.IOSLAB_SIMULATOR_MOCK || 'false' }}
+
+jobs:
+  build-and-release:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            cli/package-lock.json
+
+      - name: Build backend
+        run: |
+          echo "[release] backend install"
+          cd backend
+          npm ci
+          echo "[release] backend build"
+          npm run build
+
+      - name: Build CLI
+        run: |
+          echo "[release] cli install"
+          cd cli
+          npm ci
+          echo "[release] cli build"
+          npm run build
+
+      - name: Build dashboard + package
+        run: |
+          echo "[release] dashboard package"
+          ./scripts/build_release.sh
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ioslab-release-artifacts
+          path: dist/*
+
+      - name: Publish GitHub release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
