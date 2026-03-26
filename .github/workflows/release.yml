@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag (vX.X.X)'
+        required: false
 
 env:
   IOSLAB_SIMULATOR_MOCK: ${{ vars.IOSLAB_SIMULATOR_MOCK || 'false' }}
@@ -54,7 +59,9 @@ jobs:
           path: dist/*
 
       - name: Publish GitHub release assets
+        if: github.ref_type == 'tag' || github.event.inputs.release_tag != ''
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event.inputs.release_tag || github.ref_name }}
           files: dist/*
           generate_release_notes: true
