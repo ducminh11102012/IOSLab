@@ -3,7 +3,7 @@ name: ioslab-release
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "v2.0.0"
   workflow_dispatch: 
 
 env:
