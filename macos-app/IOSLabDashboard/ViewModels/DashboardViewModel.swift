@@ -11,6 +11,11 @@ final class DashboardViewModel: ObservableObject {
     private let apiClient = APIClient()
     private var pollTimer: Timer?
 
+    func attach(baseURL: URL) async {
+        apiClient.setBaseURL(baseURL)
+        await refresh()
+    }
+
     func start() async {
         await refresh()
         connectLogs()
@@ -30,7 +35,11 @@ final class DashboardViewModel: ObservableObject {
     }
 
     func spawnDefaultDevice() async {
-        let payload = ["name": "iPhone 15", "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-0", "modelId": "com.apple.CoreSimulator.SimDeviceType.iPhone-15"]
+        let payload = [
+            "name": "iPhone 15",
+            "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-0",
+            "modelId": "com.apple.CoreSimulator.SimDeviceType.iPhone-15"
+        ]
         do {
             let body = try JSONSerialization.data(withJSONObject: payload)
             try await apiClient.post(path: "devices/spawn", body: body)

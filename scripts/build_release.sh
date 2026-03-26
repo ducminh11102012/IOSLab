@@ -26,6 +26,8 @@ fi
 DIST_DIR="$ROOT_DIR/dist"
 PROJECT_PATH="$ROOT_DIR/macos-app/IOSLabDashboard.xcodeproj"
 SCHEME_NAME="IOSLabDashboard"
+RUNTIME_DIR="$ROOT_DIR/dist/backend-runtime"
+
 mkdir -p "$DIST_DIR"
 
 log "Using root directory: $ROOT_DIR"
@@ -38,6 +40,23 @@ log "Installing backend dependencies"
   log "Building backend"
   npm run build
 )
+
+log "Preparing embedded backend runtime"
+rm -rf "$RUNTIME_DIR"
+mkdir -p "$RUNTIME_DIR"
+cp -R "$ROOT_DIR/backend/dist" "$RUNTIME_DIR/dist"
+cp "$ROOT_DIR/backend/package.json" "$RUNTIME_DIR/package.json"
+cp "$ROOT_DIR/backend/package-lock.json" "$RUNTIME_DIR/package-lock.json"
+cp -R "$ROOT_DIR/backend/node_modules" "$RUNTIME_DIR/node_modules"
+
+cat > "$RUNTIME_DIR/start-backend.sh" <<'LAUNCH'
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")"
+exec /usr/bin/env node dist/index.js
+LAUNCH
+
+chmod +x "$RUNTIME_DIR/start-backend.sh"
 
 log "Installing CLI dependencies"
 (
@@ -57,14 +76,14 @@ if ! command -v xcodebuild >/dev/null 2>&1; then
 fi
 
 if [[ ! -d "$PROJECT_PATH" ]]; then
-  fail "Expected project file not found at macos-app/IOSLabDashboard.xcodeproj"
+  fail "Expected project file not found"
 fi
 
 if [[ ! -f "$PROJECT_PATH/project.pbxproj" ]]; then
-  fail "Project exists but project.pbxproj is missing at macos-app/IOSLabDashboard.xcodeproj/project.pbxproj"
+  fail "project.pbxproj missing"
 fi
 
-log "Building dashboard with xcodebuild (scheme: $SCHEME_NAME)"
+log "Building dashboard"
 (
   cd "$ROOT_DIR/macos-app"
   xcodebuild \
@@ -76,12 +95,24 @@ log "Building dashboard with xcodebuild (scheme: $SCHEME_NAME)"
 )
 
 APP_PATH="$ROOT_DIR/macos-app/.build/release/Build/Products/Release/IOSLabDashboard.app"
+
 if [[ ! -d "$APP_PATH" ]]; then
-  fail "xcodebuild completed but expected app bundle is missing at $APP_PATH"
+  fail "App bundle missing"
 fi
 
-log "Packaging dashboard app bundle"
+log "Embedding backend runtime into app bundle"
+rm -rf "$APP_PATH/Contents/Resources/backend-runtime"
+mkdir -p "$APP_PATH/Contents/Resources/backend-runtime"
+cp -R "$RUNTIME_DIR"/* "$APP_PATH/Contents/Resources/backend-runtime/"
+
+log "Packaging app"
 ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$DIST_DIR/IOSLabDashboard.zip"
+
+if command -v productbuild >/dev/null 2>&1; then
+  log "Packaging pkg"
+  rm -f "$DIST_DIR/IOSLabDashboard.pkg"
+  productbuild --component "$APP_PATH" /Applications "$DIST_DIR/IOSLabDashboard.pkg"
+fi
 
 log "Build artifacts generated in: $DIST_DIR"
 ls -lah "$DIST_DIR"

@@ -16,6 +16,7 @@
 		A10000272E00000000000000 /* DashboardModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000172E00000000000000 /* DashboardModels.swift */; };
 		A10000282E00000000000000 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000182E00000000000000 /* APIClient.swift */; };
 		A10000292E00000000000000 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000192E00000000000000 /* DashboardViewModel.swift */; };
+		A10000392E00000000000000 /* BackendRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000492E00000000000000 /* BackendRuntime.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,17 +30,8 @@
 		A10000172E00000000000000 /* DashboardModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardModels.swift; sourceTree = "<group>"; };
 		A10000182E00000000000000 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		A10000192E00000000000000 /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
+		A10000492E00000000000000 /* BackendRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSLabDashboard/Services/BackendRuntime.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
-
-/* Begin PBXFrameworksBuildPhase section */
-		A100000C2E00000000000000 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		A10000022E00000000000000 = {
@@ -58,246 +50,39 @@
 				A10000332E00000000000000 /* Models */,
 				A10000342E00000000000000 /* Networking */,
 				A10000352E00000000000000 /* ViewModels */,
+				A10000362E00000000000000 /* Services */,
 			);
 			path = IOSLabDashboard;
 			sourceTree = "<group>";
 		};
-		A10000042E00000000000000 /* Products */ = {
+
+		A10000362E00000000000000 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				A10000012E00000000000000 /* IOSLabDashboard.app */,
+				A10000492E00000000000000 /* BackendRuntime.swift */,
 			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		A10000312E00000000000000 /* App */ = {
-			isa = PBXGroup;
-			children = (
-				A10000112E00000000000000 /* IOSLabDashboardApp.swift */,
-				A10000122E00000000000000 /* ContentView.swift */,
-			);
-			path = App;
-			sourceTree = "<group>";
-		};
-		A10000322E00000000000000 /* Features */ = {
-			isa = PBXGroup;
-			children = (
-				A10000132E00000000000000 /* DeviceGridView.swift */,
-				A10000142E00000000000000 /* LogsPanelView.swift */,
-				A10000152E00000000000000 /* MetricsPanelView.swift */,
-				A10000162E00000000000000 /* TestTimelineView.swift */,
-			);
-			path = Features;
-			sourceTree = "<group>";
-		};
-		A10000332E00000000000000 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				A10000172E00000000000000 /* DashboardModels.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		A10000342E00000000000000 /* Networking */ = {
-			isa = PBXGroup;
-			children = (
-				A10000182E00000000000000 /* APIClient.swift */,
-			);
-			path = Networking;
-			sourceTree = "<group>";
-		};
-		A10000352E00000000000000 /* ViewModels */ = {
-			isa = PBXGroup;
-			children = (
-				A10000192E00000000000000 /* DashboardViewModel.swift */,
-			);
-			path = ViewModels;
+			path = Services;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
-/* Begin PBXNativeTarget section */
-		A100000B2E00000000000000 /* IOSLabDashboard */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = A100001E2E00000000000000 /* Build configuration list for PBXNativeTarget "IOSLabDashboard" */;
-			buildPhases = (
-				A10000092E00000000000000 /* Sources */,
-				A100000C2E00000000000000 /* Frameworks */,
-				A100000D2E00000000000000 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = IOSLabDashboard;
-			productName = IOSLabDashboard;
-			productReference = A10000012E00000000000000 /* IOSLabDashboard.app */;
-			productType = "com.apple.product-type.application";
-		};
-/* End PBXNativeTarget section */
-
-/* Begin PBXProject section */
-		A10000052E00000000000000 /* Project object */ = {
-			isa = PBXProject;
-			attributes = {
-				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1600;
-				LastUpgradeCheck = 1600;
-				TargetAttributes = {
-					A100000B2E00000000000000 = {
-						CreatedOnToolsVersion = 16.0;
-					};
-				};
-			};
-			buildConfigurationList = A10000082E00000000000000 /* Build configuration list for PBXProject "IOSLabDashboard" */;
-			compatibilityVersion = "Xcode 14.0";
-			developmentRegion = en;
-			hasScannedForEncodings = 0;
-			knownRegions = (
-				en,
-				Base,
-			);
-			mainGroup = A10000022E00000000000000;
-			productRefGroup = A10000042E00000000000000 /* Products */;
-			projectDirPath = "";
-			projectRoot = "";
-			targets = (
-				A100000B2E00000000000000 /* IOSLabDashboard */,
-			);
-		};
-/* End PBXProject section */
-
-/* Begin PBXResourcesBuildPhase section */
-		A100000D2E00000000000000 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		A10000092E00000000000000 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
-				A10000212E00000000000000 /* IOSLabDashboardApp.swift in Sources */,
-				A10000222E00000000000000 /* ContentView.swift in Sources */,
-				A10000232E00000000000000 /* DeviceGridView.swift in Sources */,
-				A10000242E00000000000000 /* LogsPanelView.swift in Sources */,
-				A10000252E00000000000000 /* MetricsPanelView.swift in Sources */,
-				A10000262E00000000000000 /* TestTimelineView.swift in Sources */,
-				A10000272E00000000000000 /* DashboardModels.swift in Sources */,
-				A10000282E00000000000000 /* APIClient.swift in Sources */,
-				A10000292E00000000000000 /* DashboardViewModel.swift in Sources */,
+				A10000212E00000000000000,
+				A10000222E00000000000000,
+				A10000232E00000000000000,
+				A10000242E00000000000000,
+				A10000252E00000000000000,
+				A10000262E00000000000000,
+				A10000272E00000000000000,
+				A10000282E00000000000000,
+				A10000292E00000000000000,
+				A10000392E00000000000000,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin XCBuildConfiguration section */
-		A100001C2E00000000000000 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				COPY_PHASE_STRIP = NO;
-				ENABLE_NS_ASSERTIONS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				SDKROOT = macosx;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-			};
-			name = Debug;
-		};
-		A100001D2E00000000000000 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				COPY_PHASE_STRIP = NO;
-				ENABLE_NS_ASSERTIONS = NO;
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				SDKROOT = macosx;
-				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
-			};
-			name = Release;
-		};
-		A100001F2E00000000000000 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = IOSLabDashboard;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ioslab.dashboard;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SUPPORTED_PLATFORMS = macosx;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		A10000202E00000000000000 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = IOSLabDashboard;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ioslab.dashboard;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SUPPORTED_PLATFORMS = macosx;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
-		};
-/* End XCBuildConfiguration section */
-
-/* Begin XCConfigurationList section */
-		A10000082E00000000000000 /* Build configuration list for PBXProject "IOSLabDashboard" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A100001C2E00000000000000 /* Debug */,
-				A100001D2E00000000000000 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		A100001E2E00000000000000 /* Build configuration list for PBXNativeTarget "IOSLabDashboard" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A100001F2E00000000000000 /* Debug */,
-				A10000202E00000000000000 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-/* End XCConfigurationList section */
 	};
-	rootObject = A10000052E00000000000000 /* Project object */;
+	rootObject = A10000052E00000000000000;
 }

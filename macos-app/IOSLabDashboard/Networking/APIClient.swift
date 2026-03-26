@@ -1,11 +1,15 @@
 import Foundation
 
 final class APIClient {
-    private let baseURL: URL
+    private var baseURL: URL
     private var wsTask: URLSessionWebSocketTask?
 
     init(baseURL: URL = URL(string: "http://127.0.0.1:4000")!) {
         self.baseURL = baseURL
+    }
+
+    func setBaseURL(_ url: URL) {
+        baseURL = url
     }
 
     func fetchDevices() async throws -> [DeviceModel] {
@@ -32,7 +36,11 @@ final class APIClient {
     }
 
     func connectLogs(onMessage: @escaping (String) -> Void, onDisconnect: @escaping () -> Void) {
-        guard let wsURL = URL(string: "ws://127.0.0.1:4000/ws/logs") else { return }
+        guard let wsURL = URL(
+            string: baseURL.absoluteString
+                .replacingOccurrences(of: "http", with: "ws") + "/ws/logs"
+        ) else { return }
+
         wsTask = URLSession.shared.webSocketTask(with: wsURL)
         wsTask?.resume()
 
