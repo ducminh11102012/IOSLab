@@ -309,3 +309,23 @@ If you care about:
 > **“If your app only works on one device, it doesn’t work.”**
 
 ---
+
+## 🔧 Build & Release
+
+Local full build (backend + CLI + dashboard package):
+
+```bash
+./scripts/build_release.sh
+```
+
+Optional clone/build usage:
+
+```bash
+./scripts/build_release.sh <repo_url> <target_dir>
+```
+
+Environment support:
+
+```bash
+IOSLAB_SIMULATOR_MOCK=true ./scripts/build_release.sh
+```
