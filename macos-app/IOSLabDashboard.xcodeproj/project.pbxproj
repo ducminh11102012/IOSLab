@@ -22,10 +22,10 @@
 		A10000012E00000000000000 /* IOSLabDashboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IOSLabDashboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000112E00000000000000 /* IOSLabDashboardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSLabDashboardApp.swift; sourceTree = "<group>"; };
 		A10000122E00000000000000 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		A10000132E00000000000000 /* DeviceGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceGridView.swift; sourceTree = "<group>"; };
-		A10000142E00000000000000 /* LogsPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogsPanelView.swift; sourceTree = "<group>"; };
-		A10000152E00000000000000 /* MetricsPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsPanelView.swift; sourceTree = "<group>"; };
-		A10000162E00000000000000 /* TestTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestTimelineView.swift; sourceTree = "<group>"; };
+		A10000132E00000000000000 /* DeviceGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSLabDashboard/Features/DeviceGrid/DeviceGridView.swift; sourceTree = SOURCE_ROOT; };
+		A10000142E00000000000000 /* LogsPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSLabDashboard/Features/Logs/LogsPanelView.swift; sourceTree = SOURCE_ROOT; };
+		A10000152E00000000000000 /* MetricsPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSLabDashboard/Features/Metrics/MetricsPanelView.swift; sourceTree = SOURCE_ROOT; };
+		A10000162E00000000000000 /* TestTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSLabDashboard/Features/TestRuns/TestTimelineView.swift; sourceTree = SOURCE_ROOT; };
 		A10000172E00000000000000 /* DashboardModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardModels.swift; sourceTree = "<group>"; };
 		A10000182E00000000000000 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		A10000192E00000000000000 /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
