@@ -11,6 +11,11 @@ final class DashboardViewModel: ObservableObject {
     private let apiClient = APIClient()
     private var pollTimer: Timer?
 
+    func attach(baseURL: URL) async {
+        apiClient.setBaseURL(baseURL)
+        await refresh()
+    }
+
     func start() async {
         await refresh()
         connectLogs()

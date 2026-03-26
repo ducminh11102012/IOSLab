@@ -16,6 +16,7 @@
 		A10000272E00000000000000 /* DashboardModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000172E00000000000000 /* DashboardModels.swift */; };
 		A10000282E00000000000000 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000182E00000000000000 /* APIClient.swift */; };
 		A10000292E00000000000000 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000192E00000000000000 /* DashboardViewModel.swift */; };
+		A10000392E00000000000000 /* BackendRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000492E00000000000000 /* BackendRuntime.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +30,7 @@
 		A10000172E00000000000000 /* DashboardModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardModels.swift; sourceTree = "<group>"; };
 		A10000182E00000000000000 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		A10000192E00000000000000 /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
+		A10000492E00000000000000 /* BackendRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSLabDashboard/Services/BackendRuntime.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +60,7 @@
 				A10000332E00000000000000 /* Models */,
 				A10000342E00000000000000 /* Networking */,
 				A10000352E00000000000000 /* ViewModels */,
+				A10000362E00000000000000 /* Services */,
 			);
 			path = IOSLabDashboard;
 			sourceTree = "<group>";
@@ -112,6 +115,14 @@
 				A10000192E00000000000000 /* DashboardViewModel.swift */,
 			);
 			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		A10000362E00000000000000 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A10000492E00000000000000 /* BackendRuntime.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -191,6 +202,7 @@
 				A10000272E00000000000000 /* DashboardModels.swift in Sources */,
 				A10000282E00000000000000 /* APIClient.swift in Sources */,
 				A10000292E00000000000000 /* DashboardViewModel.swift in Sources */,
+				A10000392E00000000000000 /* BackendRuntime.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
