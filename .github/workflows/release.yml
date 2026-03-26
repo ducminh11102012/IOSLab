@@ -3,8 +3,8 @@ name: ioslab-release
 on:
   push:
     tags:
-      - "v2.0.0"
-  workflow_dispatch: 
+      - "v*.*.*"
+  workflow_dispatch:
 
 env:
   IOSLAB_SIMULATOR_MOCK: ${{ vars.IOSLAB_SIMULATOR_MOCK || 'false' }}
@@ -14,6 +14,7 @@ jobs:
     runs-on: macos-latest
     permissions:
       contents: write
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -54,8 +55,27 @@ jobs:
           name: ioslab-release-artifacts
           path: dist/*
 
+      - name: Set release tag
+        id: tag
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=v2.0.0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create tag if not exists
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag v2.0.0 || true
+          git push origin v2.0.0 || true
+
       - name: Publish GitHub release assets
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Release ${{ steps.tag.outputs.tag }}
           files: dist/*
           generate_release_notes: true
