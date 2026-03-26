@@ -36,11 +36,7 @@ final class APIClient {
     }
 
     func connectLogs(onMessage: @escaping (String) -> Void, onDisconnect: @escaping () -> Void) {
-        guard let wsURL = URL(
-            string: baseURL.absoluteString
-                .replacingOccurrences(of: "http", with: "ws") + "/ws/logs"
-        ) else { return }
-
+        guard let wsURL = URL(string: baseURL.absoluteString.replacingOccurrences(of: "http", with: "ws") + "/ws/logs") else { return }
         wsTask = URLSession.shared.webSocketTask(with: wsURL)
         wsTask?.resume()
 
