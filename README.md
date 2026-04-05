@@ -1,8 +1,13 @@
-# ⚡ iOSLab — Break the Limits of iOS Testing
+## 🧩 DartNode Open Source Sponsorship
 
-> **Stop testing like it’s 2015.
-> Start testing like you own an Apple data center.**
+<p align="center">
+  <a href="https://dartnode.com/">
+    <img src="./Dart.png" width="140"/>
+  </a>
+</p>
 
+> Submitted to **DartNode Open Source Program**  
+> seeking infrastructure support for open-source scaling and CI workloads.
 ---
 
 ## 💀 The Truth Nobody Says
@@ -21,15 +26,9 @@ And then:
 
 ## 🧠 What if…
 
-What if your Mac could behave like this:
-
 ```text
 1 codebase → 30 devices → 4 iOS versions → all at once
 ```
-
-Not sequential.
-Not queued.
-Not delayed.
 
 **Simultaneously.**
 
@@ -42,33 +41,28 @@ Not delayed.
 Not a simulator tool.
 Not a test runner.
 
-👉 A **local iOS compute grid**.
+👉 A local iOS compute grid.
 
 ---
 
 ## 😳 What You Actually Get
 
-* 20+ iPhones booted instantly
-* Each running different test flows
-* Cross-version comparison in real time
-* UI differences detected automatically
-* Logs streaming like a live system
+* 20+ simulators at once
+* Cross-version testing
+* UI diff detection
+* Live logs streaming
 
 ---
 
 ## 🔥 Why This Is Different
 
-Because iOSLab doesn’t optimize testing.
-
-👉 It **removes the bottleneck entirely.**
+👉 It removes the bottleneck entirely.
 
 ---
 
 # ⚡ Core Capabilities
 
----
-
-## 💥 PARALLELISM — Not “faster”, but **simultaneous**
+## 💥 PARALLELISM — Not “faster”, but simultaneous
 
 ```bash
 ioslab test --devices=32
@@ -99,9 +93,7 @@ At the same time.
 * Compare against baseline
 * Highlight differences
 
-Not “looks fine”.
-
-👉 **Mathematically verified UI.**
+👉 Mathematically verified UI.
 
 ---
 
@@ -161,8 +153,6 @@ You see everything:
 * system load
 * test status
 
-It doesn’t feel like testing.
-
 👉 It feels like operating infrastructure.
 
 ---
@@ -195,25 +185,17 @@ Push your Mac to the edge — safely.
 
 # 🧪 What Developers Actually Use This For
 
----
-
 ## 🐞 Reproducing impossible bugs
 
 Run across 10 environments instantly.
-
----
 
 ## 🎨 Catching UI regressions
 
 Before QA even opens the app.
 
----
-
 ## 🚀 Pre-push CI
 
 Run everything locally before committing.
-
----
 
 ## ⚙️ Performance stress testing
 
@@ -235,8 +217,6 @@ Simulate real-world usage density.
 # 🧠 Why This Matters
 
 Because modern apps are not simple.
-
-And:
 
 > You cannot validate complex systems with linear testing.
 
@@ -329,3 +309,19 @@ Environment support:
 ```bash
 IOSLAB_SIMULATOR_MOCK=true ./scripts/build_release.sh
 ```
+
+---
+
+## 🚀 RELEASE NOTE (PREBUILT APP AVAILABLE)
+
+👉 A **prebuilt release version of iOSLab is already available in GitHub Releases**, so users do NOT need to build from source unless they want to contribute or modify the system.
+
+This release includes:
+
+* Ready-to-run application bundle
+* Precompiled CLI tools
+* Stable testing pipeline setup
+* Zero-build quick start experience
+
+Recommended usage:
+👉 Download latest release → run directly → start testing immediately
