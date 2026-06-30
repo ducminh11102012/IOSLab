@@ -1,13 +1,6 @@
-## 🧩 DartNode Open Source Sponsorship
+## 🧩 GetMac Open Source Sponsorship
 
-<p align="center">
-  <a href="https://dartnode.com/">
-    <img src="./Dart.png" width="140"/>
-  </a>
-</p>
-
-> Submitted to **DartNode Open Source Program**  
-> seeking infrastructure support for open-source scaling and CI workloads.
+[![Builds Powered by GetMac](https://getmac.io/badge.svg)](https://getmac.io)
 ---
 
 ## 💀 The Truth Nobody Says
