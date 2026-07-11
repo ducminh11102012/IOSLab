@@ -44,7 +44,7 @@ iOSLab runs many simulator instances concurrently on the same machine, so a full
 
 ### Option 1: Prebuilt release (recommended)
 
-Precompiled application bundles and CLI tools are available on the [Releases page](https://github.com/yourname/ioslab/releases). Download the latest release and run it directly — no build step required.
+Precompiled application bundles and CLI tools are available on the [Releases page](https://github.com/ducminh11102012/ioslab/releases). Download the latest release and run it directly — no build step required.
 
 ### Option 2: Build from source
 
