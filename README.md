@@ -1,8 +1,3 @@
-## 🧩 GetMac Open Source Sponsorship
-
-[![Builds Powered by GetMac](https://getmac.io/badge.svg)](https://getmac.io)
----
-
 ## 💀 The Truth Nobody Says
 
 iOS development has a scaling problem.
