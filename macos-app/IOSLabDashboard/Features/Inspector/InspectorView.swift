@@ -9,7 +9,7 @@ struct InspectorView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Utilities Tab Icon Strip (at top of Inspector Panel)
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 InspectorTabButton(icon: "info.circle", activeIcon: "info.circle.fill", tag: "attributes", current: $inspectorTab)
                     .help("Attributes Inspector")
                 InspectorTabButton(icon: "checklist.checked", activeIcon: "checklist.checked", tag: "test", current: $inspectorTab)
@@ -18,6 +18,8 @@ struct InspectorView: View {
                     .help("Visual Regression Metrics")
                 InspectorTabButton(icon: "terminal", activeIcon: "terminal.fill", tag: "lldb", current: $inspectorTab)
                     .help("LLDB Debugger Console")
+                InspectorTabButton(icon: "leaf", activeIcon: "leaf.fill", tag: "sustainability", current: $inspectorTab)
+                    .help("Sustainability Energy Report")
                 InspectorTabButton(icon: "play.circle", activeIcon: "play.circle.fill", tag: "actions", current: $inspectorTab)
                     .help("Quick Actions")
             }
@@ -44,6 +46,9 @@ struct InspectorView: View {
                         case "lldb":
                             LLDBDebuggerView(viewModel: viewModel)
 
+                        case "sustainability":
+                            SustainabilityEnergyView(viewModel: viewModel)
+
                         case "actions":
                             QuickActionsInspectorTab(device: device, viewModel: viewModel)
 
@@ -52,6 +57,8 @@ struct InspectorView: View {
                         }
                     } else if inspectorTab == "lldb" {
                         LLDBDebuggerView(viewModel: viewModel)
+                    } else if inspectorTab == "sustainability" {
+                        SustainabilityEnergyView(viewModel: viewModel)
                     } else {
                         VStack(spacing: 12) {
                             Image(systemName: "sidebar.right")

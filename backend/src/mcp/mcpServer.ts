@@ -100,6 +100,33 @@ export class McpServer {
                     },
                     required: ["id", "type"]
                   }
+                },
+                {
+                  name: "inject_chaos",
+                  description: "Inject controlled failure conditions such as network loss, clock offsets, or thermal limiting.",
+                  inputSchema: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string", description: "The VM Device ID" },
+                      networkProfile: { type: "string", enum: ["Wi-Fi", "3G", "2G", "No-Network"] },
+                      thermalThrottle: { type: "boolean" },
+                      systemClockOffset: { type: "number" }
+                    },
+                    required: ["id"]
+                  }
+                },
+                {
+                  name: "simulate_device_aging",
+                  description: "Simulate device wear and tear including battery degradation and disk filling.",
+                  inputSchema: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string", description: "The VM Device ID" },
+                      batteryDegraded: { type: "boolean" },
+                      diskFullLevel: { type: "number" }
+                    },
+                    required: ["id"]
+                  }
                 }
               ]
             }
@@ -173,6 +200,19 @@ export class McpServer {
           x: args.x,
           y: args.y,
           key: args.key
+        });
+
+      case "inject_chaos":
+        return this.orchestrator.vmEngine.injectChaos(args.id, {
+          networkProfile: args.networkProfile,
+          thermalThrottle: args.thermalThrottle,
+          systemClockOffset: args.systemClockOffset
+        });
+
+      case "simulate_device_aging":
+        return this.orchestrator.vmEngine.simulateAging(args.id, {
+          batteryDegraded: args.batteryDegraded,
+          diskFullLevel: args.diskFullLevel
         });
 
       default:

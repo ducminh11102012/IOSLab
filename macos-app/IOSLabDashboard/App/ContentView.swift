@@ -55,10 +55,12 @@ struct ContentView: View {
                             Text("Playground REPL").tag("repl")
                             Text("Matrix Table").tag("matrix")
                             Text("Visual Diff").tag("diff")
+                            Text("Time-Travel DVR").tag("timetravel")
+                            Text("Accessibility Matrix").tag("accessibility")
                             Text("System Console").tag("console")
                         }
                         .pickerStyle(.segmented)
-                        .frame(width: 680)
+                        .frame(width: 960)
                     }
 
                     Spacer()
@@ -115,6 +117,14 @@ struct ContentView: View {
 
                                 case "diff":
                                     VisualDiffView(selectedDevice: selectedDevice)
+                                        .padding(16)
+
+                                case "timetravel":
+                                    SignatureFeaturesView(viewModel: viewModel, selectedDevice: selectedDevice)
+                                        .padding(16)
+
+                                case "accessibility":
+                                    AccessibilityMatrixView(viewModel: viewModel, selectedDevice: selectedDevice)
                                         .padding(16)
 
                                 case "console":
