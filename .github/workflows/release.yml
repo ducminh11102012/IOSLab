@@ -1,4 +1,4 @@
-name: Build, Sign, and Release iOSLab Platform
+name: Build and Release iOSLab Platform (Unsigned)
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-release:
-    name: Build, Securely Sign, and Publish Release
+    name: Build and Publish Unsigned Release
     runs-on: macos-14 # Runs on Apple Silicon macos runner to support native Xcode builds
     permissions:
       contents: write # Explicitly grant write access to push the release assets
@@ -31,76 +31,33 @@ jobs:
             cli/package-lock.json
 
       # ==========================================
-      # 2. INSTALL PROVISIONING & CERTIFICATES
+      # 2. BUILD NATIVE MACOS APP (UNSIGNED)
       # ==========================================
-      - name: Install macOS Developer Signing Certificates
-        env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      - name: Build and Archive Xcode Dashboard App (Unsigned)
         run: |
-          # Create variables
-          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          KEYCHAIN_PATH=$RUNNER_TEMP/app.keychain-db
-
-          # Import certificate and provisioning profile from secrets
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
-
-          # Create temporary keychain
-          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-
-          # Import certificate to keychain
-          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security list-keychains -d user -s $KEYCHAIN_PATH
-
-      - name: Install Provisioning Profiles
-        env:
-          PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
-        run: |
-          # Decode and install provisioning profile
-          PP_PATH=$RUNNER_TEMP/profile.mobileprovision
-          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o $PP_PATH
-
-          # Place profile in provisioning profiles folder
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
-
-      # ==========================================
-      # 3. BUILD & SECURELY SIGN NATIVE MACOS APP
-      # ==========================================
-      - name: Build, Sign, and Archive Xcode Dashboard App
-        env:
-          CODE_SIGN_IDENTITY: "Apple Development"
-          DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
-        run: |
-          # Build and archive native macOS dashboard application
+          # Build and archive native macOS app bypassing Apple certificates (Developer bypass)
           xcodebuild archive \
             -project macos-app/IOSLabDashboard.xcodeproj \
             -scheme IOSLabDashboard \
             -configuration Release \
             -archivePath $RUNNER_TEMP/IOSLabDashboard.xcarchive \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
-            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
-            PROVISIONING_PROFILE_SPECIFIER="iOSLab_v3_Profile"
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_ENTITLEMENTS=""
 
-      - name: Export and Sign App Product Package
+      - name: Export and Package App Bundle (Unsigned)
         run: |
-          # Export compiled and signed app bundle from archive
-          xcodebuild -exportArchive \
-            -archivePath $RUNNER_TEMP/IOSLabDashboard.xcarchive \
-            -exportOptionsPlist macos-app/exportOptions.plist \
-            -exportPath $RUNNER_TEMP/export
+          # Create temporary folder for un-signed app export
+          mkdir -p $RUNNER_TEMP/export
+          cp -r $RUNNER_TEMP/IOSLabDashboard.xcarchive/Products/Applications/IOSLabDashboard.app $RUNNER_TEMP/export/
 
-          # Zip the final native App bundle
+          # Zip the final native App bundle (Users can disable macOS Gatekeeper to execute)
           cd $RUNNER_TEMP/export
           zip -r $RUNNER_TEMP/IOSLabDashboard.app.zip IOSLabDashboard.app
 
       # ==========================================
-      # 4. COMPILE & BUNDLE BACKEND AND CLI
+      # 3. COMPILE & BUNDLE BACKEND AND CLI
       # ==========================================
       - name: Install Dependencies and Compile Backend & CLI
         run: |
@@ -124,7 +81,7 @@ jobs:
           zip -r release-assets/ioslab-cli.zip release-assets/cli-dist
 
       # ==========================================
-      # 5. CREATE AND PUBLISH GITHUB RELEASE
+      # 4. CREATE AND PUBLISH GITHUB RELEASE
       # ==========================================
       - name: Publish Artifacts to GitHub Releases
         uses: softprops/action-gh-release@v1
