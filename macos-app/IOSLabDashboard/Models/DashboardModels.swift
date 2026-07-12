@@ -5,6 +5,14 @@ struct DeviceModel: Codable, Identifiable {
     let name: String
     let status: String
     let runtime: String
+    let type: String?
+    let variant: String?
+    let currentPatchTier: String?
+    let backupList: [String]?
+    let cpu: Int?
+    let memory: Int?
+    let disk: Int?
+    let screen: String?
 }
 
 struct JobModel: Codable, Identifiable {

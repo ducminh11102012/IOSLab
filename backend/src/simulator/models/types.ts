@@ -29,13 +29,23 @@ export interface SimulatorDevice {
   deviceTypeIdentifier?: string;
 }
 
+export type DeviceType = "simulator" | "vm";
+
 export interface Device {
   id: string;
   name: string;
   runtime: string;
   status: DeviceStatus;
+  type: DeviceType;
   simulatorUdid?: string;
   modelId?: string;
+  variant?: string;
+  currentPatchTier?: string;
+  backupList?: string[];
+  cpu?: number;
+  memory?: number;
+  disk?: number;
+  screen?: string;
   createdAt: string;
   updatedAt: string;
 }
