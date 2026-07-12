@@ -47,23 +47,28 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 // Workspace Header Context Tabs
                 HStack(spacing: 16) {
-                    Picker("Canvas Mode", selection: $canvasTab) {
-                        Text("Grid View").tag("grid")
-                        Text("Matrix Table").tag("matrix")
-                        Text("Visual Diff").tag("diff")
-                        Text("System Console").tag("console")
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        Picker("Canvas Mode", selection: $canvasTab) {
+                            Text("Grid Devices").tag("grid")
+                            Text("Source Editor").tag("editor")
+                            Text("Live Previews").tag("preview")
+                            Text("Playground REPL").tag("repl")
+                            Text("Matrix Table").tag("matrix")
+                            Text("Visual Diff").tag("diff")
+                            Text("System Console").tag("console")
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 680)
                     }
-                    .pickerStyle(.segmented)
-                    .frame(width: 360)
 
                     Spacer()
 
                     // Zoom Slider (similar to Xcode Previews)
-                    if canvasTab == "grid" {
+                    if canvasTab == "grid" || canvasTab == "preview" {
                         HStack {
                             Image(systemName: "minus.magnifyingglass")
                             Slider(value: $zoomScale, in: 0.5...2.0)
-                                .frame(width: 100)
+                                .frame(width: 80)
                             Image(systemName: "plus.magnifyingglass")
                         }
                         .font(.caption2)
@@ -89,6 +94,20 @@ struct ContentView: View {
                                     .padding(16)
                                     .scaleEffect(zoomScale)
                                     .animation(.interactiveSpring, value: zoomScale)
+
+                                case "editor":
+                                    EditorView(viewModel: viewModel)
+                                        .padding(16)
+
+                                case "preview":
+                                    PreviewsView(viewModel: viewModel)
+                                        .padding(16)
+                                        .scaleEffect(zoomScale)
+                                        .animation(.interactiveSpring, value: zoomScale)
+
+                                case "repl":
+                                    SwiftPlaygroundREPLView(viewModel: viewModel)
+                                        .padding(16)
 
                                 case "matrix":
                                     MatrixTableView(devices: viewModel.devices, jobs: viewModel.jobs)

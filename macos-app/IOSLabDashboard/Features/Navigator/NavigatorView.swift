@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct NavigatorView: View {
-    @Binding var navigatorTab: String
+    @Binding var navigatorTab: String // devices, tests, reports, snapshots, project, git, packages
     let devices: [DeviceModel]
     let jobs: [JobModel]
 
@@ -12,27 +12,40 @@ struct NavigatorView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Icon Tab Strip (like top of Xcode Navigator)
-            HStack(spacing: 16) {
-                NavigatorTabButton(icon: "iphone.circle", activeIcon: "iphone.circle.fill", tag: "devices", current: $navigatorTab)
-                    .help("Device Navigator")
-                NavigatorTabButton(icon: "checkmark.circle", activeIcon: "checkmark.circle.fill", tag: "tests", current: $navigatorTab)
-                    .help("Test Navigator")
-                NavigatorTabButton(icon: "doc.plaintext", activeIcon: "doc.plaintext.fill", tag: "reports", current: $navigatorTab)
-                    .help("Report Navigator")
-                NavigatorTabButton(icon: "clock.arrow.2.circlepath", activeIcon: "clock.arrow.2.circlepath", tag: "snapshots", current: $navigatorTab)
-                    .help("Snapshot Navigator")
+            // Tab Icon Strip (representing Xcode's multi-tabbed Navigator header)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    NavigatorTabButton(icon: "folder", activeIcon: "folder.fill", tag: "project", current: $navigatorTab)
+                        .help("Project Navigator (.xcodeproj / SPM)")
+                    NavigatorTabButton(icon: "iphone.circle", activeIcon: "iphone.circle.fill", tag: "devices", current: $navigatorTab)
+                        .help("Device & VM Navigator")
+                    NavigatorTabButton(icon: "checkmark.circle", activeIcon: "checkmark.circle.fill", tag: "tests", current: $navigatorTab)
+                        .help("Test Navigator")
+                    NavigatorTabButton(icon: "doc.plaintext", activeIcon: "doc.plaintext.fill", tag: "reports", current: $navigatorTab)
+                        .help("Report Navigator")
+                    NavigatorTabButton(icon: "clock.arrow.2.circlepath", activeIcon: "clock.arrow.2.circlepath", tag: "snapshots", current: $navigatorTab)
+                        .help("Snapshot Navigator")
+                    NavigatorTabButton(icon: "arrow.triangle.branch", activeIcon: "arrow.triangle.branch", tag: "git", current: $navigatorTab)
+                        .help("Source Control Navigator")
+                    NavigatorTabButton(icon: "shippingbox", activeIcon: "shippingbox.fill", tag: "packages", current: $navigatorTab)
+                        .help("SPM Packages Navigator")
+                    NavigatorTabButton(icon: "archivebox", activeIcon: "archivebox.fill", tag: "organizer", current: $navigatorTab)
+                        .help("Organizer (Crashes, TestFlight)")
+                }
+                .padding(.horizontal, 10)
             }
             .padding(.vertical, 8)
-            .frame(maxWidth: .infinity)
             .background(Color(NSColor.windowBackgroundColor))
 
             Divider()
 
-            // Sidebar Lists based on selected tab
+            // Sidebar lists
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     switch navigatorTab {
+                    case "project":
+                        ProjectNavigatorList(viewModel: viewModel)
+
                     case "devices":
                         DeviceNavigatorList(devices: devices, selectedDevice: $selectedDevice)
 
@@ -44,6 +57,15 @@ struct NavigatorView: View {
 
                     case "snapshots":
                         SnapshotNavigatorList(devices: devices, viewModel: viewModel)
+
+                    case "git":
+                        GitNavigatorList(viewModel: viewModel)
+
+                    case "packages":
+                        SPMPackagesList(viewModel: viewModel)
+
+                    case "organizer":
+                        OrganizerView(viewModel: viewModel)
 
                     default:
                         Text("No Navigator Tab Selected")
@@ -70,15 +92,100 @@ struct NavigatorTabButton: View {
             current = tag
         }) {
             Image(systemName: current == tag ? activeIcon : icon)
-                .font(.system(size: 14, weight: .regular))
+                .font(.system(size: 13, weight: .regular))
                 .foregroundColor(current == tag ? .accentColor : .secondary)
-                .frame(width: 24, height: 24)
+                .frame(width: 22, height: 22)
         }
         .buttonStyle(.plain)
     }
 }
 
-// 1. Device Navigator Tree View
+// 1. Xcode Project & SPM Tree Navigator
+struct ProjectNavigatorList: View {
+    let viewModel: DashboardViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("PROJECT FILES TREE")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(.secondary)
+
+            DisclosureGroup(isExpanded: .constant(true)) {
+                VStack(alignment: .leading, spacing: 6) {
+                    FileRowView(name: "Package.swift", icon: "doc.text", color: .purple) {
+                        viewModel.logs.append("Opened Package.swift config in editor.")
+                    }
+
+                    DisclosureGroup(isExpanded: .constant(true)) {
+                        FileRowView(name: "OrchestratorService.swift", icon: "doc.text.fill", color: .orange) {
+                            viewModel.logs.append("Opened OrchestratorService.swift in editor.")
+                        }
+                        FileRowView(name: "VMEngine.swift", icon: "doc.text.fill", color: .orange) {
+                            viewModel.logs.append("Opened VMEngine.swift in editor.")
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "folder")
+                                .font(.system(size: 11))
+                                .foregroundColor(.accentColor)
+                            Text("Sources")
+                                .font(.system(size: 11, weight: .bold))
+                        }
+                    }
+
+                    DisclosureGroup(isExpanded: .constant(true)) {
+                        FileRowView(name: "AppTests.swift", icon: "doc.text.fill", color: .orange) {
+                            viewModel.logs.append("Opened AppTests.swift in editor.")
+                        }
+                        FileRowView(name: "VMIntegrationTests.swift", icon: "doc.text.fill", color: .orange) {
+                            viewModel.logs.append("Opened VMIntegrationTests.swift in editor.")
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "folder")
+                                .font(.system(size: 11))
+                                .foregroundColor(.accentColor)
+                            Text("Tests")
+                                .font(.system(size: 11, weight: .bold))
+                        }
+                    }
+                }
+                .padding(.leading, 8)
+            } label: {
+                HStack {
+                    Image(systemName: "square.stack.3d.up")
+                        .font(.system(size: 11))
+                        .foregroundColor(.blue)
+                    Text("iOSLabWorkspace")
+                        .font(.system(size: 11, weight: .bold))
+                }
+            }
+        }
+    }
+}
+
+struct FileRowView: View {
+    let name: String
+    let icon: String
+    let color: Color
+    let action: () -> Void
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 11))
+                .foregroundColor(color)
+            Text(name)
+                .font(.system(size: 11))
+            Spacer()
+        }
+        .padding(.vertical, 1)
+        .contentShape(Rectangle())
+        .onTapGesture(perform: action)
+    }
+}
+
+// 2. Device Navigator Tree View
 struct DeviceNavigatorList: View {
     let devices: [DeviceModel]
     @Binding var selectedDevice: DeviceModel?
@@ -99,7 +206,6 @@ struct DeviceNavigatorList: View {
                 DisclosureGroup(isExpanded: .constant(true)) {
                     ForEach(runtimeDevices) { device in
                         HStack(spacing: 6) {
-                            // Status Dot Indicator
                             Circle()
                                 .fill(device.status == "ready" ? Color.green : (device.status == "busy" ? Color.purple : Color.gray))
                                 .frame(width: 6, height: 6)
@@ -135,7 +241,7 @@ struct DeviceNavigatorList: View {
     }
 }
 
-// 2. Test Navigator Tree (Suite -> Device -> Case)
+// 3. Test Navigator Tree (Suite -> Device -> Case)
 struct TestNavigatorList: View {
     let jobs: [JobModel]
     @Binding var selectedJob: JobModel?
@@ -186,7 +292,7 @@ struct TestNavigatorList: View {
     }
 }
 
-// 3. Report Navigator History
+// 4. Report Navigator History
 struct ReportNavigatorList: View {
     let viewModel: DashboardViewModel
 
@@ -225,7 +331,7 @@ struct ReportNavigatorList: View {
     }
 }
 
-// 4. Snapshot / Backup Navigator Branch List
+// 5. Snapshot / Backup Navigator Branch List
 struct SnapshotNavigatorList: View {
     let devices: [DeviceModel]
     let viewModel: DashboardViewModel
@@ -277,6 +383,98 @@ struct SnapshotNavigatorList: View {
                                 .font(.system(size: 11, weight: .bold))
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+// 6. Source Control Git branch-diff Navigator
+struct GitNavigatorList: View {
+    let viewModel: DashboardViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("SOURCE CONTROL (GIT STATUS)")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(.secondary)
+
+            DisclosureGroup(isExpanded: .constant(true)) {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Image(systemName: "arrow.triangle.branch")
+                            .font(.system(size: 11))
+                            .foregroundColor(.gray)
+                        Text("main (tracking origin/main)")
+                            .font(.system(size: 11, design: .monospaced))
+                        Spacer()
+                    }
+                    .padding(.leading, 8)
+
+                    Divider()
+
+                    Text("LOCAL CHANGED FILES")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundColor(.secondary)
+                        .padding(.top, 4)
+
+                    FileRowView(name: "VMEngine.swift (M)", icon: "pencil.circle.fill", color: .orange) {
+                        viewModel.logs.append("Diffing VMEngine.swift changes in Git editor.")
+                    }
+                    FileRowView(name: "Package.swift (M)", icon: "pencil.circle.fill", color: .purple) {
+                        viewModel.logs.append("Diffing Package.swift changes in Git editor.")
+                    }
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "circle.grid.3x3.fill")
+                        .font(.system(size: 11))
+                        .foregroundColor(.green)
+                    Text("ioslab-workspace")
+                        .font(.system(size: 11, weight: .bold))
+                }
+            }
+        }
+    }
+}
+
+// 7. Swift Package Manager (SPM) Dependencies list
+struct SPMPackagesList: View {
+    let viewModel: DashboardViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("SWIFT PACKAGES DEPENDENCIES")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(.secondary)
+
+            DisclosureGroup(isExpanded: .constant(true)) {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Image(systemName: "shippingbox")
+                            .font(.system(size: 11))
+                            .foregroundColor(.blue)
+                        Text("FastifyEngine (v2.4.0)")
+                            .font(.system(size: 11))
+                        Spacer()
+                    }
+                    HStack {
+                        Image(systemName: "shippingbox")
+                            .font(.system(size: 11))
+                            .foregroundColor(.blue)
+                        Text("SwiftLSP-Client (v0.8.1)")
+                            .font(.system(size: 11))
+                        Spacer()
+                    }
+                }
+                .padding(.leading, 8)
+            } label: {
+                HStack {
+                    Image(systemName: "cube.box")
+                        .font(.system(size: 11))
+                        .foregroundColor(.purple)
+                    Text("SPM Package Dependencies")
+                        .font(.system(size: 11, weight: .bold))
                 }
             }
         }
