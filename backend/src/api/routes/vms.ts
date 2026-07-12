@@ -92,4 +92,33 @@ export async function registerVmRoutes(app: FastifyInstance, orchestrator: Orche
     const result = orchestrator.vmEngine.proposeTestFlow(request.params.id);
     return result;
   });
+
+  // Mobile Chaos Injection endpoint
+  app.post<{ Params: { id: string } }>("/vms/:id/chaos", async (request) => {
+    const chaosSchema = z.object({
+      networkProfile: z.string().optional(),
+      thermalThrottle: z.boolean().optional(),
+      systemClockOffset: z.number().optional()
+    });
+    const payload = chaosSchema.parse(request.body);
+    const result = orchestrator.vmEngine.injectChaos(request.params.id, payload);
+    return result;
+  });
+
+  // Device Aging Simulation endpoint
+  app.post<{ Params: { id: string } }>("/vms/:id/aging", async (request) => {
+    const agingSchema = z.object({
+      batteryDegraded: z.boolean().optional(),
+      diskFullLevel: z.number().optional()
+    });
+    const payload = agingSchema.parse(request.body);
+    const result = orchestrator.vmEngine.simulateAging(request.params.id, payload);
+    return result;
+  });
+
+  // Retrieve Time-Travel Frames
+  app.get<{ Params: { id: string } }>("/vms/:id/timetravel", async (request) => {
+    const result = orchestrator.vmEngine.getTimeTravelFrames(request.params.id);
+    return { items: result };
+  });
 }
