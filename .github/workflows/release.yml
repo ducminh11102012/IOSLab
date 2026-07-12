@@ -1,80 +1,139 @@
-name: ioslab-release
+name: Build, Sign, and Release iOSLab Platform
 
 on:
   push:
     tags:
-      - "v*.*.*"
-
-env:
-  IOSLAB_SIMULATOR_MOCK: ${{ vars.IOSLAB_SIMULATOR_MOCK || 'false' }}
+      - 'v*' # Trigger on version tags (e.g., v3.0.0)
 
 jobs:
   build-and-release:
-    runs-on: macos-latest
+    name: Build, Securely Sign, and Publish Release
+    runs-on: macos-14 # Runs on Apple Silicon macos runner to support native Xcode builds
     permissions:
-      contents: write
+      contents: write # Explicitly grant write access to push the release assets
 
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Setup Node
+      # ==========================================
+      # 1. SETUP ENVIRONMENT & NODE
+      # ==========================================
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
           cache: 'npm'
           cache-dependency-path: |
             backend/package-lock.json
             cli/package-lock.json
 
-      - name: Build backend
+      # ==========================================
+      # 2. INSTALL PROVISIONING & CERTIFICATES
+      # ==========================================
+      - name: Install macOS Developer Signing Certificates
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
-          echo "[release] backend install"
+          # Create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app.keychain-db
+
+          # Import certificate and provisioning profile from secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+
+          # Create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # Import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychains -d user -s $KEYCHAIN_PATH
+
+      - name: Install Provisioning Profiles
+        env:
+          PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          # Decode and install provisioning profile
+          PP_PATH=$RUNNER_TEMP/profile.mobileprovision
+          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+
+          # Place profile in provisioning profiles folder
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+
+      # ==========================================
+      # 3. BUILD & SECURELY SIGN NATIVE MACOS APP
+      # ==========================================
+      - name: Build, Sign, and Archive Xcode Dashboard App
+        env:
+          CODE_SIGN_IDENTITY: "Apple Development"
+          DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
+        run: |
+          # Build and archive native macOS dashboard application
+          xcodebuild archive \
+            -project macos-app/IOSLabDashboard.xcodeproj \
+            -scheme IOSLabDashboard \
+            -configuration Release \
+            -archivePath $RUNNER_TEMP/IOSLabDashboard.xcarchive \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
+            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+            PROVISIONING_PROFILE_SPECIFIER="iOSLab_v3_Profile"
+
+      - name: Export and Sign App Product Package
+        run: |
+          # Export compiled and signed app bundle from archive
+          xcodebuild -exportArchive \
+            -archivePath $RUNNER_TEMP/IOSLabDashboard.xcarchive \
+            -exportOptionsPlist macos-app/exportOptions.plist \
+            -exportPath $RUNNER_TEMP/export
+
+          # Zip the final native App bundle
+          cd $RUNNER_TEMP/export
+          zip -r $RUNNER_TEMP/IOSLabDashboard.app.zip IOSLabDashboard.app
+
+      # ==========================================
+      # 4. COMPILE & BUNDLE BACKEND AND CLI
+      # ==========================================
+      - name: Install Dependencies and Compile Backend & CLI
+        run: |
+          # Build Backend Server
           cd backend
-          npm ci
-          echo "[release] backend build"
+          npm install
           npm run build
+          cd ..
 
-      - name: Build CLI
-        run: |
-          echo "[release] cli install"
+          # Build CLI binary packages
           cd cli
-          npm ci
-          echo "[release] cli build"
+          npm install
           npm run build
+          cd ..
 
-      - name: Build dashboard + package
-        run: |
-          echo "[release] dashboard package"
-          ./scripts/build_release.sh
+          # Package and zip CLI and backend release artifacts
+          mkdir -p release-assets
+          cp -r backend release-assets/backend-dist
+          cp -r cli release-assets/cli-dist
+          zip -r release-assets/ioslab-backend.zip release-assets/backend-dist
+          zip -r release-assets/ioslab-cli.zip release-assets/cli-dist
 
-      - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+      # ==========================================
+      # 5. CREATE AND PUBLISH GITHUB RELEASE
+      # ==========================================
+      - name: Publish Artifacts to GitHub Releases
+        uses: softprops/action-gh-release@v1
         with:
-          name: ioslab-release-artifacts
-          path: dist/*
-
-      - name: Set release tag
-        id: tag
-        run: |
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
-          else
-            echo "tag=v2.0.0" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Create tag if not exists
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git tag v2.0.0 || true
-          git push origin v2.0.0 || true
-
-      - name: Publish GitHub release assets
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          name: Release ${{ steps.tag.outputs.tag }}
-          files: dist/*
-          generate_release_notes: true
+          files: |
+            ${{ runner.temp }}/export/IOSLabDashboard.app.zip
+            release-assets/ioslab-backend.zip
+            release-assets/ioslab-cli.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
