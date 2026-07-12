@@ -31,6 +31,10 @@ struct NavigatorView: View {
                         .help("SPM Packages Navigator")
                     NavigatorTabButton(icon: "archivebox", activeIcon: "archivebox.fill", tag: "organizer", current: $navigatorTab)
                         .help("Organizer (Crashes, TestFlight)")
+                    NavigatorTabButton(icon: "calendar.badge.clock", activeIcon: "calendar.badge.clock", tag: "booking", current: $navigatorTab)
+                        .help("Security Audits & Booking Slots")
+                    NavigatorTabButton(icon: "link", activeIcon: "link", tag: "automation", current: $navigatorTab)
+                        .help("CI/CD Integrations & Webhooks")
                 }
                 .padding(.horizontal, 10)
             }
@@ -66,6 +70,12 @@ struct NavigatorView: View {
 
                     case "organizer":
                         OrganizerView(viewModel: viewModel)
+
+                    case "booking":
+                        AuditBookingView(viewModel: viewModel)
+
+                    case "automation":
+                        AutomationIntegrationsView(viewModel: viewModel)
 
                     default:
                         Text("No Navigator Tab Selected")

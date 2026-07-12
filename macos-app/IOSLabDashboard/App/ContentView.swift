@@ -53,6 +53,7 @@ struct ContentView: View {
                             Text("Source Editor").tag("editor")
                             Text("Live Previews").tag("preview")
                             Text("Playground REPL").tag("repl")
+                            Text("Command Palette").tag("palette")
                             Text("Matrix Table").tag("matrix")
                             Text("Visual Diff").tag("diff")
                             Text("Time-Travel DVR").tag("timetravel")
@@ -60,7 +61,7 @@ struct ContentView: View {
                             Text("System Console").tag("console")
                         }
                         .pickerStyle(.segmented)
-                        .frame(width: 960)
+                        .frame(width: 1100)
                     }
 
                     Spacer()
@@ -109,6 +110,10 @@ struct ContentView: View {
 
                                 case "repl":
                                     SwiftPlaygroundREPLView(viewModel: viewModel)
+                                        .padding(16)
+
+                                case "palette":
+                                    CommandPaletteView(viewModel: viewModel)
                                         .padding(16)
 
                                 case "matrix":
