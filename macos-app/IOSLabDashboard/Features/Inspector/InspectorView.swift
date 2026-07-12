@@ -9,13 +9,15 @@ struct InspectorView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Utilities Tab Icon Strip (at top of Inspector Panel)
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 InspectorTabButton(icon: "info.circle", activeIcon: "info.circle.fill", tag: "attributes", current: $inspectorTab)
                     .help("Attributes Inspector")
                 InspectorTabButton(icon: "checklist.checked", activeIcon: "checklist.checked", tag: "test", current: $inspectorTab)
                     .help("Test History Utilities")
                 InspectorTabButton(icon: "photo.on.rectangle", activeIcon: "photo.on.rectangle.fill", tag: "diff", current: $inspectorTab)
                     .help("Visual Regression Metrics")
+                InspectorTabButton(icon: "terminal", activeIcon: "terminal.fill", tag: "lldb", current: $inspectorTab)
+                    .help("LLDB Debugger Console")
                 InspectorTabButton(icon: "play.circle", activeIcon: "play.circle.fill", tag: "actions", current: $inspectorTab)
                     .help("Quick Actions")
             }
@@ -39,12 +41,17 @@ struct InspectorView: View {
                         case "diff":
                             VisualDiffInspectorTab(device: device)
 
+                        case "lldb":
+                            LLDBDebuggerView(viewModel: viewModel)
+
                         case "actions":
                             QuickActionsInspectorTab(device: device, viewModel: viewModel)
 
                         default:
                             Text("No Inspector Tab Selected")
                         }
+                    } else if inspectorTab == "lldb" {
+                        LLDBDebuggerView(viewModel: viewModel)
                     } else {
                         VStack(spacing: 12) {
                             Image(systemName: "sidebar.right")
