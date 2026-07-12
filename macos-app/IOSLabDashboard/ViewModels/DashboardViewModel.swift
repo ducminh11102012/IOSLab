@@ -8,7 +8,7 @@ final class DashboardViewModel: ObservableObject {
     @Published var metrics = MetricsModel(devices: 0, jobs: 0, queueDepth: 0)
     @Published var logs: [String] = []
 
-    private let apiClient = APIClient()
+    let apiClient = APIClient()
     private var pollTimer: Timer?
 
     func attach(baseURL: URL) async {

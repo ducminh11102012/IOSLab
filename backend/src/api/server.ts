@@ -4,6 +4,8 @@ import { registerHealthRoutes } from "./routes/health";
 import { registerDeviceRoutes } from "./routes/devices";
 import { registerTestRoutes } from "./routes/tests";
 import { registerMetricsRoutes } from "./routes/metrics";
+import { registerVmRoutes } from "./routes/vms";
+import { registerMcpRoutes } from "./routes/mcp";
 import { errorHandler } from "./middleware/errorHandler";
 import { registerLogSocket } from "../websocket/registerLogSocket";
 
@@ -24,6 +26,8 @@ export function buildServer(orchestrator: OrchestratorService) {
   void registerDeviceRoutes(app, orchestrator);
   void registerTestRoutes(app, orchestrator);
   void registerMetricsRoutes(app, orchestrator);
+  void registerVmRoutes(app, orchestrator);
+  void registerMcpRoutes(app, orchestrator);
   registerLogSocket(app);
 
   return app;

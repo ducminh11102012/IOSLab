@@ -25,14 +25,18 @@ iOSLab runs many simulator instances concurrently on the same machine, so a full
 ## Features
 
 - **Parallel execution** — run tests across 20+ simulator instances concurrently.
+- **Hybrid device platform** — run Simulator instances and real virtualized iOS instances (Apple Virtualization.framework) side-by-side.
 - **Device/OS matrix testing** — validate a combination of device models (iPhone SE through Pro Max) and iOS versions (15–18) in one run.
-- **Visual regression detection** — capture a screenshot per state and diff it against a baseline.
+- **Visual virtualization engine** — full boot pipeline (`fw_prepare` -> `fw_patch` -> `restore` -> `cfw_install` -> `boot`) to run genuine real iOS 18 on guest VMs.
+- **Visual regression detection** — capture a screenshot per state and diff it against a baseline (fully supports VM screenshots).
 - **Cross-version diffing** — surface layout, animation, and OS-specific differences between iOS versions.
 - **Test orchestration** — describe the desired device/OS coverage declaratively; iOSLab handles scheduling, retries, and load balancing.
+- **Model Context Protocol (MCP)** — expose the device pool as standard tools to LLM agents (e.g. Claude Code/Desktop).
+- **AI-assisted exploratory tests** — automatically generate test flows and spec suites directly from live VM screenshots.
 - **Local CI pipeline** — run build, test, validate, and report steps locally without an external CI queue.
 - **Dashboard** — a live view of the device grid, logs, system load, and test status.
 - **REST API** — trigger and monitor runs programmatically for integration with CI/CD or internal tooling.
-- **Resource-aware scheduling** — adapts simulator concurrency to available CPU and memory.
+- **Resource-aware scheduling** — adapts simulator and heavy VM concurrency to available CPU and memory using cost-weight resource intelligence.
 
 ## Requirements
 
@@ -113,6 +117,87 @@ POST /devices/spawn
 POST /tests/run
 GET  /metrics
 ```
+
+### v2 VM-Specific Endpoints
+```
+POST /vms/spawn          # Spawn a real virtualized iOS guest VM
+GET  /vms                # List all virtualized guest VMs
+GET  /vms/{id}/screenshot # Get a live base64 snapshot of the guest VM screen
+POST /vms/{id}/input      # Inject tap, swipe, keypress, or scroll gesture
+POST /vms/{id}/backup     # Create a saved state backup of guest VM
+POST /vms/{id}/restore    # Restore VM state to a saved backup snapshot
+POST /vms/{id}/switch     # Hot-swap CPU, memory, or disk specifications
+POST /vms/{id}/agent/explore # Propose exploratory test flows using screenshots
+POST /mcp                 # JSON-RPC 2.0 endpoint for the Model Context Protocol
+```
+
+## VM Lifecycle CLI Subcommands
+
+iOSLab v2 introduces a first-class command group `vm` for complete guest VM lifecycle orchestrations, mirroring Simulator ergonomics:
+
+```bash
+# Create a new guest VM configuration on disk
+ioslab vm new "iPhone 18 VM" --cpu 4 --memory 6 --disk 64
+
+# Boot VM through firmware preparation, patching, and restore pipelines
+ioslab vm boot <vmId>
+
+# Snapshot/Backup VM state
+ioslab vm backup <vmId> "Clean-Install"
+
+# Restore VM to previously saved backup state
+ioslab vm restore <vmId> "Clean-Install"
+
+# Hot-swap CPU or Memory specifications of a running/stopped VM
+ioslab vm switch <vmId> --cpu 8 --memory 12
+
+# List all local virtualized iOS guest VMs on Apple Silicon
+ioslab vm list
+```
+
+To dynamically spawn a VM via the unified `spawn` command, use the `--vm` flag:
+```bash
+ioslab spawn "My Guest iOS 18" --vm
+```
+
+## Model Context Protocol (MCP) Server
+
+iOSLab v2 hosts a fully standard-compliant MCP server at `POST /mcp` (using JSON-RPC 2.0). LLM client agents (such as Claude Code or Claude Desktop) can connect and drive automated physical-like guest iOS VM testing directly:
+- `list_devices`: lists unified device pools (Simulators and VMs).
+- `spawn_device`: provisions and boots Simulator or VM.
+- `run_test`: enqueues test targets.
+- `get_screenshot`: grabs base64 live screen of virtualized real iOS.
+- `inject_input`: sends touch/keyboard inputs.
+
+---
+
+## Migration & Compatibility Guide for v1 Users
+
+iOSLab v2 is designed to be **strictly additive, 100% backward-compatible, and zero-configuration** for existing Simulator-only users.
+
+### Backward-Compatible Defaults
+- **Existing Commands Unmodified:** Commands like `ioslab test --devices=32` continue to execute 32 lightweight iOS Simulator instances backed by `xcrun simctl`.
+- **Zero Configuration Needed:** If you do not explicitly opt-in to Virtualization, the platform behaves identically to v1, avoiding high CPU/disk footprints of running full iOS kernels.
+
+### Explicit Opt-in for Real iOS VMs
+VM testing is strictly opt-in and can be described declaratively in matrix YAML configurations or target flags:
+```yaml
+test:
+  devices:
+    - type: simulator
+      count: 24
+      ios_versions: [17, 18]
+    - type: vm
+      count: 4
+      ios_versions: [18]
+      variant: boot-only   # firmware minimal patch tier
+```
+
+### Resource Accounting and Cost Weights
+- Running full iOS virtual machines incurs high overhead. iOSLab v2 incorporates resource-aware scheduling:
+  - **Simulator cost weight:** `1` resource unit.
+  - **VM cost weight:** `4` resource units.
+- The orchestrator load-balancer automatically limits total active device weight based on host memory and CPU limits to prevent core throttling.
 
 ## Comparison
 

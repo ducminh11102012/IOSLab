@@ -8,13 +8,12 @@ export interface SchedulerResult {
   device?: Device;
 }
 
+import { getActiveLoad, getDeviceCost } from "../policies/capacityPolicy";
+
 export class SchedulerService {
   selectDevice(job: TestJob, devices: Device[]): SchedulerResult {
     const capacity = getCapacitySnapshot();
-    const busyDevices = devices.filter((d) => d.status === "busy").length;
-    if (busyDevices >= capacity.maxSimulators) {
-      return { canRun: false, reason: "capacity_exceeded" };
-    }
+    const activeLoad = getActiveLoad(devices);
 
     const compatible = devices.find((device) => {
       if (device.status !== "ready") return false;
@@ -25,6 +24,11 @@ export class SchedulerService {
 
     if (!compatible) {
       return { canRun: false, reason: "no_compatible_device" };
+    }
+
+    const cost = getDeviceCost(compatible);
+    if (activeLoad + cost > capacity.maxSimulators) {
+      return { canRun: false, reason: "capacity_exceeded" };
     }
 
     emitEngineEvent({
