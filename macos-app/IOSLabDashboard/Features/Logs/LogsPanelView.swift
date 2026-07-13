@@ -23,6 +23,7 @@ struct LogsPanelView: View {
 // CANVASES, EDITORS & UTILITY INSPECTORS (LogsPanelView Append)
 // ==========================================
 
+@MainActor
 struct EditorView: View {
     let viewModel: DashboardViewModel
     @State private var codeText: String = """
@@ -165,6 +166,7 @@ public final class VMEngine {
     }
 }
 
+@MainActor
 struct PreviewsView: View {
     let viewModel: DashboardViewModel
     @State private var isRebuilding = false
@@ -269,6 +271,7 @@ struct PreviewsView: View {
     }
 }
 
+@MainActor
 struct SwiftPlaygroundREPLView: View {
     let viewModel: DashboardViewModel
     @State private var inputCode: String = "let score = [4, 5, 2].reduce(0, +)\nprint(\"Total sum: \\(score)\")"
@@ -325,6 +328,7 @@ struct SwiftPlaygroundREPLView: View {
     }
 }
 
+@MainActor
 struct InspectorView: View {
     let selectedDevice: DeviceModel?
     let selectedJob: JobModel?
@@ -663,6 +667,7 @@ struct InspectorInfoRow: View {
     }
 }
 
+@MainActor
 struct LLDBDebuggerView: View {
     let viewModel: DashboardViewModel
     @State private var lldbCommand: String = ""
