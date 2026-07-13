@@ -64,7 +64,14 @@ jobs:
             cli/package-lock.json
 
       # ==========================================
-      # 3. BUILD NATIVE MACOS APP (UNSIGNED)
+      # 3. CREATE RELEASE ASSETS DIRECTORY
+      # ==========================================
+      - name: Prepare Release Directory
+        run: |
+          mkdir -p release-assets
+
+      # ==========================================
+      # 4. BUILD NATIVE MACOS APP (UNSIGNED)
       # ==========================================
       - name: Build and Archive Xcode Dashboard App (Unsigned)
         run: |
@@ -77,7 +84,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_ENTITLEMENTS=""
+            CODE_SIGNING_ENTITLEMENTS=""
 
       - name: Export and Package App Bundle (Unsigned)
         run: |
@@ -85,12 +92,12 @@ jobs:
           mkdir -p $RUNNER_TEMP/export
           cp -r $RUNNER_TEMP/IOSLabDashboard.xcarchive/Products/Applications/IOSLabDashboard.app $RUNNER_TEMP/export/
 
-          # Zip the final native App bundle (Users can disable macOS Gatekeeper to execute)
+          # Zip the final native App bundle directly into release-assets folder
           cd $RUNNER_TEMP/export
-          zip -r $RUNNER_TEMP/IOSLabDashboard.app.zip IOSLabDashboard.app
+          zip -r $GITHUB_WORKSPACE/release-assets/IOSLabDashboard.app.zip IOSLabDashboard.app
 
       # ==========================================
-      # 4. COMPILE & BUNDLE BACKEND AND CLI
+      # 5. COMPILE & BUNDLE BACKEND AND CLI
       # ==========================================
       - name: Install Dependencies and Compile Backend & CLI
         run: |
@@ -107,14 +114,15 @@ jobs:
           cd ..
 
           # Package and zip CLI and backend release artifacts
-          mkdir -p release-assets
           cp -r backend release-assets/backend-dist
           cp -r cli release-assets/cli-dist
-          zip -r release-assets/ioslab-backend.zip release-assets/backend-dist
-          zip -r release-assets/ioslab-cli.zip release-assets/cli-dist
+          cd release-assets
+          zip -r ioslab-backend.zip backend-dist
+          zip -r ioslab-cli.zip cli-dist
+          cd ..
 
       # ==========================================
-      # 5. CREATE AND PUBLISH GITHUB RELEASE
+      # 6. CREATE AND PUBLISH GITHUB RELEASE
       # ==========================================
       - name: Determine Release Target Tag
         id: release_tag
@@ -133,7 +141,7 @@ jobs:
           tag_name: ${{ steps.release_tag.outputs.tag }}
           name: ${{ steps.release_tag.outputs.name }}
           files: |
-            ${{ runner.temp }}/export/IOSLabDashboard.app.zip
+            release-assets/IOSLabDashboard.app.zip
             release-assets/ioslab-backend.zip
             release-assets/ioslab-cli.zip
           draft: false
