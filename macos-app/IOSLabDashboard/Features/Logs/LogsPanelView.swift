@@ -259,14 +259,14 @@ struct PreviewsView: View {
         rebuildProgress = 0.0
         viewModel.logs.append("Triggered swift dynamic rebuild & relaunch preview pipeline.")
 
-        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
-            rebuildProgress += 0.2
-            if rebuildProgress >= 1.0 {
-                timer.invalidate()
-                isRebuilding = false
-                previewState = "Live Screen Active"
-                viewModel.logs.append("Preview hot-reload complete. Streamed live guest VM screenshot.")
+        Task {
+            for _ in 1...5 {
+                try? await Task.sleep(nanoseconds: 100_000_000)
+                rebuildProgress += 0.2
             }
+            isRebuilding = false
+            previewState = "Live Screen Active"
+            viewModel.logs.append("Preview hot-reload complete. Streamed live guest VM screenshot.")
         }
     }
 }
