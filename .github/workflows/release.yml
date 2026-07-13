@@ -4,13 +4,23 @@ on:
   push:
     tags:
       - 'v*' # Trigger on version tags (e.g., v3.0.0)
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Version of the release to publish (e.g., 3.0.0)'
+        required: true
+        default: '3.0.0'
+      tag_name:
+        description: 'Git Tag Name to build / associate (e.g., v3.0.0)'
+        required: true
+        default: 'v3.0.0'
 
 jobs:
   build-and-release:
     name: Build and Publish Unsigned Release
     runs-on: macos-14 # Runs on Apple Silicon macos runner to support native Xcode builds
     permissions:
-      contents: write # Explicitly grant write access to push the release assets
+      contents: write # Explicitly grant write access to push the release assets and tags
 
     steps:
       - name: Checkout Repository
@@ -19,7 +29,30 @@ jobs:
           fetch-depth: 0
 
       # ==========================================
-      # 1. SETUP ENVIRONMENT & NODE
+      # 1. HANDLE DYNAMIC TAGGING (WORKFLOW_DISPATCH)
+      # ==========================================
+      - name: Verify or Create Git Tag
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          TAG_NAME: ${{ github.event.inputs.tag_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Set up Git identity
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check if tag already exists in remote
+          git fetch --tags
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Git tag '$TAG_NAME' already exists. Reusing existing tag for release build."
+          else
+            echo "Git tag '$TAG_NAME' does not exist. Creating and pushing new tag from current commit..."
+            git tag "$TAG_NAME"
+            git push origin "$TAG_NAME"
+          fi
+
+      # ==========================================
+      # 2. SETUP ENVIRONMENT & NODE
       # ==========================================
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -31,7 +64,7 @@ jobs:
             cli/package-lock.json
 
       # ==========================================
-      # 2. BUILD NATIVE MACOS APP (UNSIGNED)
+      # 3. BUILD NATIVE MACOS APP (UNSIGNED)
       # ==========================================
       - name: Build and Archive Xcode Dashboard App (Unsigned)
         run: |
@@ -57,7 +90,7 @@ jobs:
           zip -r $RUNNER_TEMP/IOSLabDashboard.app.zip IOSLabDashboard.app
 
       # ==========================================
-      # 3. COMPILE & BUNDLE BACKEND AND CLI
+      # 4. COMPILE & BUNDLE BACKEND AND CLI
       # ==========================================
       - name: Install Dependencies and Compile Backend & CLI
         run: |
@@ -81,11 +114,24 @@ jobs:
           zip -r release-assets/ioslab-cli.zip release-assets/cli-dist
 
       # ==========================================
-      # 4. CREATE AND PUBLISH GITHUB RELEASE
+      # 5. CREATE AND PUBLISH GITHUB RELEASE
       # ==========================================
+      - name: Determine Release Target Tag
+        id: release_tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag_name }}" >> $GITHUB_OUTPUT
+            echo "name=Release ${{ github.event.inputs.release_version }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "name=Release ${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Publish Artifacts to GitHub Releases
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ steps.release_tag.outputs.tag }}
+          name: ${{ steps.release_tag.outputs.name }}
           files: |
             ${{ runner.temp }}/export/IOSLabDashboard.app.zip
             release-assets/ioslab-backend.zip
