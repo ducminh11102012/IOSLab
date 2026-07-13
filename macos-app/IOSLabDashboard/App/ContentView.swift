@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 
+@MainActor
 struct ContentView: View {
     @ObservedObject var viewModel: DashboardViewModel
     @ObservedObject var runtime: BackendRuntime
@@ -10,7 +11,7 @@ struct ContentView: View {
     @State private var selectedJob: JobModel? = nil
 
     // Tab Selections
-    @State private var navigatorTab: String = "devices" // devices, tests, reports, snapshots, project, git, packages
+    @State private var navigatorTab: String = "devices" // devices, tests, reports, snapshots, project, git, packages, organizer, booking, automation
     @State private var canvasTab: String = "grid" // grid, matrix, diff, console
     @State private var inspectorTab: String = "attributes" // attributes, test, diff, actions
     @State private var selectedScheme: String = "Hybrid VM & Sim Matrix"
@@ -25,7 +26,7 @@ struct ContentView: View {
     let schemes = ["Local Simulator Pool (18.0)", "Hybrid VM & Sim Matrix", "Exploratory AI Suite", "CI Validation Core"]
 
     var body: some View {
-        NavigationSplitView {
+        HStack(spacing: 0) {
             // 1. LEFT PANE: Tabbed Navigator Sidebar
             if showNavigator {
                 NavigatorView(
@@ -36,14 +37,12 @@ struct ContentView: View {
                     selectedJob: $selectedJob,
                     viewModel: viewModel
                 )
-                .navigationSplitViewColumnWidth(min: 240, ideal: 280, max: 320)
+                .frame(width: 260)
                 .background(VisualEffectView().ignoresSafeArea())
-            } else {
-                Text("Sidebar Collapsed")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+
+                Divider()
             }
-        } detail: {
+
             // 2. CENTER PANE: Workspace Canvas and Bottom Console Area
             VStack(spacing: 0) {
                 // Workspace Header Context Tabs
@@ -86,69 +85,69 @@ struct ContentView: View {
                 Divider()
 
                 // Active Workspace Canvas Display
-                GeometryReader { geo in
-                    VStack(spacing: 0) {
-                        ScrollView([.horizontal, .vertical]) {
-                            VStack(spacing: 12) {
-                                switch canvasTab {
-                                case "grid":
-                                    DeviceGridView(devices: viewModel.devices, zoomScale: zoomScale) { device in
-                                        selectedDevice = device
-                                    }
+                VStack(spacing: 0) {
+                    ScrollView([.horizontal, .vertical]) {
+                        VStack(spacing: 12) {
+                            switch canvasTab {
+                            case "grid":
+                                DeviceGridView(devices: viewModel.devices, zoomScale: zoomScale) { device in
+                                    selectedDevice = device
+                                }
+                                .padding(16)
+                                .scaleEffect(zoomScale)
+                                .animation(.interactiveSpring, value: zoomScale)
+
+                            case "editor":
+                                EditorView(viewModel: viewModel)
+                                    .padding(16)
+
+                            case "preview":
+                                PreviewsView(viewModel: viewModel)
                                     .padding(16)
                                     .scaleEffect(zoomScale)
                                     .animation(.interactiveSpring, value: zoomScale)
 
-                                case "editor":
-                                    EditorView(viewModel: viewModel)
+                            case "repl":
+                                SwiftPlaygroundREPLView(viewModel: viewModel)
+                                    .padding(16)
+
+                            case "palette":
+                                CommandPaletteView(viewModel: viewModel)
+                                    .padding(16)
+
+                            case "matrix":
+                                MatrixTableView(devices: viewModel.devices, jobs: viewModel.jobs)
+                                    .padding(16)
+
+                            case "diff":
+                                VisualDiffView(selectedDevice: selectedDevice)
                                         .padding(16)
 
-                                case "preview":
-                                    PreviewsView(viewModel: viewModel)
-                                        .padding(16)
-                                        .scaleEffect(zoomScale)
-                                        .animation(.interactiveSpring, value: zoomScale)
+                            case "timetravel":
+                                SignatureFeaturesView(viewModel: viewModel, selectedDevice: selectedDevice)
+                                    .padding(16)
 
-                                case "repl":
-                                    SwiftPlaygroundREPLView(viewModel: viewModel)
-                                        .padding(16)
+                            case "accessibility":
+                                AccessibilityMatrixView(viewModel: viewModel, selectedDevice: selectedDevice)
+                                    .padding(16)
 
-                                case "palette":
-                                    CommandPaletteView(viewModel: viewModel)
-                                        .padding(16)
+                            case "console":
+                                FullLogConsoleView(logs: viewModel.logs, searchText: $consoleSearchText)
+                                    .padding(16)
 
-                                case "matrix":
-                                    MatrixTableView(devices: viewModel.devices, jobs: viewModel.jobs)
-                                        .padding(16)
-
-                                case "diff":
-                                    VisualDiffView(selectedDevice: selectedDevice)
-                                        .padding(16)
-
-                                case "timetravel":
-                                    SignatureFeaturesView(viewModel: viewModel, selectedDevice: selectedDevice)
-                                        .padding(16)
-
-                                case "accessibility":
-                                    AccessibilityMatrixView(viewModel: viewModel, selectedDevice: selectedDevice)
-                                        .padding(16)
-
-                                case "console":
-                                    FullLogConsoleView(logs: viewModel.logs, searchText: $consoleSearchText)
-                                        .padding(16)
-
-                                default:
-                                    Text("Select a view mode")
-                                }
+                            default:
+                                Text("Select a view mode")
                             }
                         }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                        // Collapsible Inline Resource Timeline lanes (Collapsible Instruments)
-                        ResourceTimelineView(devices: viewModel.devices)
-                            .frame(height: 120)
-                            .background(Color(NSColor.controlBackgroundColor))
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                    Divider()
+
+                    // Collapsible Inline Resource Timeline lanes (Collapsible Instruments)
+                    ResourceTimelineView(devices: viewModel.devices)
+                        .frame(height: 120)
+                        .background(Color(NSColor.controlBackgroundColor))
                 }
 
                 // 3. BOTTOM DRAWER: Console Log Area
@@ -182,15 +181,18 @@ struct ContentView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            // 4. RIGHT PANE: Collapsible Utilities Inspector
-            .inspector(isPresented: $showInspector) {
+
+            // 4. RIGHT PANE: Collapsible Utilities Inspector (HStack Three-Pane layout compatible with macOS 13)
+            if showInspector {
+                Divider()
+
                 InspectorView(
                     selectedDevice: selectedDevice,
                     selectedJob: selectedJob,
                     viewModel: viewModel,
                     inspectorTab: $inspectorTab
                 )
-                .inspectorColumnWidth(min: 260, ideal: 300, max: 340)
+                .frame(width: 300)
                 .background(VisualEffectView().ignoresSafeArea())
             }
         }
@@ -302,6 +304,7 @@ struct VisualEffectView: NSViewRepresentable {
 // PREFERENCES, STORAGE & SUSTAINABILITY (ContentView Append)
 // ==========================================
 
+@MainActor
 struct PreferencesView: View {
     let viewModel: DashboardViewModel
     @State private var themeSelector = "system"
@@ -376,6 +379,7 @@ struct PreferencesView: View {
     }
 }
 
+@MainActor
 struct StorageDashboardView: View {
     let viewModel: DashboardViewModel
     @State private var vmDiskUsageGb: Double = 124.0
@@ -397,7 +401,8 @@ struct StorageDashboardView: View {
 
                         VStack(alignment: .leading) {
                             let totalGb = vmDiskUsageGb + cacheDiskUsageGb + artifactDiskUsageGb
-                            Text("\(totalGb.formatted("%.1f")) GB")
+                            let formattedStr = String(format: "%.1f", totalGb)
+                            Text("\(formattedStr) GB")
                                 .font(.system(size: 16, weight: .bold, design: .monospaced))
                             Text("Large VM configurations & cached builds found")
                                 .font(.system(size: 8))
@@ -486,11 +491,12 @@ struct StorageLegendRow: View {
                 .font(.system(size: 9))
             Spacer()
             Text(size)
-                .font(.system(size: 9, design: .monospaced, weight: .bold))
+                .font(.system(size: 9, weight: .bold, design: .monospaced))
         }
     }
 }
 
+@MainActor
 struct SustainabilityEnergyView: View {
     let viewModel: DashboardViewModel
 
@@ -564,7 +570,7 @@ struct SustainabilityEnergyView: View {
                         Text("Energy Consumed:")
                         Spacer()
                         Text("12.4 Wh")
-                            .font(.system(size: 9, design: .monospaced, weight: .bold))
+                            .font(.system(size: 9, weight: .bold, design: .monospaced))
                             .foregroundColor(.green)
                     }
                     .font(.caption2)
@@ -573,7 +579,7 @@ struct SustainabilityEnergyView: View {
                         Text("CO2 Emissions Saved:")
                         Spacer()
                         Text("4.8 g CO2 Offset")
-                            .font(.system(size: 9, design: .monospaced, weight: .bold))
+                            .font(.system(size: 9, weight: .bold, design: .monospaced))
                             .foregroundColor(.green)
                     }
                     .font(.caption2)

@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 struct DeviceGridView: View {
     let devices: [DeviceModel]
     var zoomScale: Double = 1.0
@@ -7,8 +8,8 @@ struct DeviceGridView: View {
 
     var body: some View {
         GroupBox("Unified Device Pool (Simulators & VMs)") {
-            let cellWidth: CGFloat = 200.0 * CGFloat(zoomScale)
-            let cellSpacing: CGFloat = 12.0 * CGFloat(zoomScale)
+            let cellWidth: CGFloat = CGFloat(200.0 * zoomScale)
+            let cellSpacing: CGFloat = CGFloat(12.0 * zoomScale)
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: cellWidth))], spacing: cellSpacing) {
                 ForEach(devices) { device in
@@ -91,6 +92,7 @@ struct DeviceGridView: View {
 // WORKSPACE CANVAS TABS (DeviceGridView Append)
 // ==========================================
 
+@MainActor
 struct MatrixTableView: View {
     let devices: [DeviceModel]
     let jobs: [JobModel]
@@ -141,6 +143,7 @@ struct MatrixTableView: View {
     }
 }
 
+@MainActor
 struct VisualDiffView: View {
     let selectedDevice: DeviceModel?
     @State private var diffScrubber: Double = 0.5
@@ -249,6 +252,7 @@ struct VisualDiffView: View {
     }
 }
 
+@MainActor
 struct FullLogConsoleView: View {
     let logs: [String]
     @Binding var searchText: String
@@ -290,6 +294,7 @@ struct FullLogConsoleView: View {
     }
 }
 
+@MainActor
 struct ResourceTimelineView: View {
     let devices: [DeviceModel]
     @State private var timeOffset: Double = 0.0
@@ -372,6 +377,7 @@ struct ResourceTimelineView: View {
     }
 }
 
+@MainActor
 struct CommandPaletteView: View {
     let viewModel: DashboardViewModel
     @State private var queryText: String = ""
@@ -438,6 +444,7 @@ struct CommandPaletteView: View {
     }
 }
 
+@MainActor
 struct SignatureFeaturesView: View {
     let viewModel: DashboardViewModel
     let selectedDevice: DeviceModel?
@@ -493,7 +500,7 @@ struct SignatureFeaturesView: View {
                                     Image(systemName: "video.fill")
                                         .foregroundColor(.pink)
                                     Text(dvrStates[Int(timeTravelIndex)])
-                                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                                        .font(.system(size: 10, weight: .bold, design: .monospaced))
                                         .foregroundColor(.white)
                                         .multilineTextAlignment(.center)
                                         .padding(.horizontal, 8)
@@ -662,6 +669,7 @@ struct SignatureFeaturesView: View {
     }
 }
 
+@MainActor
 struct AccessibilityMatrixView: View {
     let viewModel: DashboardViewModel
     let selectedDevice: DeviceModel?
@@ -708,7 +716,7 @@ struct AccessibilityMatrixView: View {
                             Text("Dynamic Larger Text Scaling")
                             Spacer()
                             Text("\(Int(textScalePercent))%")
-                                .font(.system(size: 9, design: .monospaced, weight: .bold))
+                                .font(.system(size: 9, weight: .bold, design: .monospaced))
                         }
                         .font(.caption2)
                         Slider(value: $textScalePercent, in: 100...300, step: 25)
