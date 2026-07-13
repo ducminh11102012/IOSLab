@@ -6,8 +6,23 @@ struct DeviceGridCell: View {
     let zoomScale: Double
     let onSelectDevice: ((DeviceModel) -> Void)?
 
+    private var isVM: Bool {
+        device.type == "vm"
+    }
+
+    private var cardBackground: Color {
+        isVM ? Color.purple.opacity(0.05) : Color.gray.opacity(0.05)
+    }
+
+    private var strokeColor: Color {
+        isVM ? Color.purple.opacity(0.3) : Color.gray.opacity(0.15)
+    }
+
+    private var strokeLineWidth: CGFloat {
+        isVM ? 2.0 : 1.0
+    }
+
     var body: some View {
-        let isVM = device.type == "vm"
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(device.name)
@@ -65,10 +80,10 @@ struct DeviceGridCell: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(isVM ? Color.purple.opacity(0.05) : Color.gray.opacity(0.05))
+        .background(cardBackground)
         .overlay(
             RoundedRectangle(cornerRadius: 10)
-                .stroke(isVM ? Color.purple.opacity(0.3) : Color.gray.opacity(0.15), lineWidth: isVM ? 2 : 1)
+                .stroke(strokeColor, lineWidth: strokeLineWidth)
         )
         .cornerRadius(10)
         .contentShape(Rectangle())
