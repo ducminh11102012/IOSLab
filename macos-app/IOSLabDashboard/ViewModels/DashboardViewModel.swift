@@ -9,7 +9,7 @@ final class DashboardViewModel: ObservableObject {
     @Published var logs: [String] = []
 
     let apiClient = APIClient()
-    private var pollTimer: Timer?
+    private var pollTask: Task<Void, Never>?
 
     func attach(baseURL: URL) async {
         apiClient.setBaseURL(baseURL)
@@ -68,9 +68,15 @@ final class DashboardViewModel: ObservableObject {
     }
 
     private func startPollingFallback() {
-        pollTimer?.invalidate()
-        pollTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
-            Task { await self?.refresh() }
+        pollTask?.cancel()
+        pollTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+                if Task.isCancelled { break }
+                if let self = self {
+                    await self.refresh()
+                }
+            }
         }
     }
 }
