@@ -13,6 +13,7 @@ struct DeviceModel: Codable, Identifiable {
     let memory: Int?
     let disk: Int?
     let screen: String?
+    let modelId: String?
 }
 
 struct JobModel: Codable, Identifiable {
