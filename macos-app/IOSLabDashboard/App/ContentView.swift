@@ -23,6 +23,10 @@ struct ContentView: View {
     @State private var zoomScale: Double = 1.0
     @State private var consoleSearchText = ""
 
+    // Connection Manager State
+    @State private var isShowingConnectionSettings = false
+    @State private var customBaseURLString = "http://127.0.0.1:4000"
+
     let schemes = ["Local Simulator Pool (18.0)", "Hybrid VM & Sim Matrix", "Exploratory AI Suite", "CI Validation Core"]
 
     var body: some View {
@@ -245,6 +249,63 @@ struct ContentView: View {
                     }
                 }
                 .help("Select scheme configuration")
+
+                // Connection Configuration Popover
+                HStack {
+                    Divider()
+                    Button(action: { isShowingConnectionSettings.toggle() }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "wifi")
+                                .foregroundColor(viewModel.devices.isEmpty ? .orange : .green)
+                            Text("Connection settings")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .popover(isPresented: $isShowingConnectionSettings, arrowEdge: .bottom) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Backend Connection Settings")
+                                .font(.headline)
+
+                            Text("Enter the address where your manual or local iOSLab backend is running.")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+
+                            TextField("URL Address", text: $customBaseURLString)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 240)
+                                .controlSize(.small)
+
+                            HStack {
+                                Spacer()
+                                Button("Cancel") {
+                                    isShowingConnectionSettings = false
+                                }
+                                .controlSize(.small)
+
+                                Button("Connect") {
+                                    if let url = URL(string: customBaseURLString) {
+                                        runtime.stop()
+                                        if customBaseURLString.contains("4000") {
+                                            runtime.setPort(4000)
+                                        } else if let portStr = customBaseURLString.components(separatedBy: ":").last, let portVal = Int(portStr) {
+                                            runtime.setPort(portVal)
+                                        }
+                                        Task {
+                                            await viewModel.attach(baseURL: url)
+                                            await viewModel.refresh()
+                                            viewModel.logs.append("Manually connected to active backend at address: \(customBaseURLString)")
+                                        }
+                                        isShowingConnectionSettings = false
+                                    }
+                                }
+                                .tint(.accentColor)
+                                .controlSize(.small)
+                            }
+                        }
+                        .padding(16)
+                    }
+                }
 
                 // Live Status Display
                 HStack(spacing: 8) {
