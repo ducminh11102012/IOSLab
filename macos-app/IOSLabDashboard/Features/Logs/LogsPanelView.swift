@@ -48,6 +48,11 @@ public final class VMEngine {
 """
     @State private var showingAutocomplete = false
     @State private var selectedAutocomplete = "bootPipeline()"
+    @State private var activeTab = "VMEngine.swift"
+    @State private var showingFindReplace = false
+    @State private var findText = ""
+    @State private var replaceText = ""
+    @Namespace private var tabNamespace
 
     let autocompleteSuggestions = [
         "bootPipeline() -> Void",
@@ -57,110 +62,251 @@ public final class VMEngine {
         "switchConfig(cpu: Int, ram: Int)"
     ]
 
+    let openFiles = ["VMEngine.swift", "DashboardViewModel.swift", "DeviceModel.swift"]
+
+    private var sharedCornerRadius: CGFloat {
+        return CGFloat(10.0)
+    }
+
     var body: some View {
-        GroupBox("Native Source Editor (SourceKit-LSP Integration)") {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Image(systemName: "doc.text.fill")
-                        .foregroundColor(.orange)
-                    Text("Sources/VMEngine.swift")
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                    Spacer()
-                    Text("SourceKit-LSP: Active")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundColor(.green)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.green.opacity(0.1))
-                        .cornerRadius(4)
-                }
+        VStack(spacing: 12) {
+            // Liquid Glass Tab Bar Capsule Container
+            HStack(spacing: 8) {
+                ForEach(openFiles, id: \.self) { fileName in
+                    let isActive = fileName == activeTab
+                    HStack(spacing: 6) {
+                        Image(systemName: "doc.text.fill")
+                            .font(.system(size: 10))
+                            .foregroundColor(isActive ? .orange : .secondary)
 
-                Divider()
+                        Text(fileName)
+                            .font(.system(size: 11, weight: isActive ? .semibold : .regular))
+                            .foregroundColor(isActive ? .primary : .secondary)
 
-                HStack(alignment: .top, spacing: 12) {
-                    VStack(spacing: 4) {
-                        ForEach(1...18, id: \.self) { line in
-                            HStack {
-                                if line == 12 {
-                                    Image(systemName: "exclamationmark.octagon.fill")
-                                        .font(.system(size: 9))
-                                        .foregroundColor(.red)
-                                } else {
-                                    Text("\(line)")
-                                        .font(.system(size: 9, design: .monospaced))
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                            .frame(height: 14)
+                        if fileName == "VMEngine.swift" {
+                            Circle()
+                                .fill(Color.orange)
+                                .frame(width: 5, height: 5)
+                                .help("Unsaved changes")
                         }
                     }
-                    .frame(width: 20)
-                    .padding(.top, 4)
-
-                    VStack(alignment: .leading, spacing: 0) {
-                        TextEditor(text: $codeText)
-                            .font(.system(size: 12, design: .monospaced))
-                            .frame(height: 250)
-                            .background(Color.white.opacity(0.1))
-                            .cornerRadius(4)
-                            .onChange(of: codeText) { newValue in
-                                if newValue.hasSuffix(".") {
-                                    showingAutocomplete = true
-                                }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        ZStack {
+                            if isActive {
+                                RoundedRectangle(cornerRadius: sharedCornerRadius)
+                                    .fill(Color.white.opacity(0.12))
+                                    .matchedGeometryEffect(id: "activeTabUnderlay", in: tabNamespace)
+                            } else {
+                                RoundedRectangle(cornerRadius: sharedCornerRadius)
+                                    .fill(Color.clear)
                             }
-
-                        if showingAutocomplete {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("LSP Autocomplete Suggestions:")
-                                    .font(.system(size: 9, weight: .bold))
-                                    .foregroundColor(.purple)
-
-                                ForEach(autocompleteSuggestions, id: \.self) { suggestion in
-                                    Button(action: {
-                                        codeText += suggestion
-                                        showingAutocomplete = false
-                                        viewModel.logs.append("Completed code with LSP: \(suggestion)")
-                                    }) {
-                                        Text("• \(suggestion)")
-                                            .font(.system(size: 10, design: .monospaced))
-                                            .foregroundColor(.primary)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                            .padding(8)
-                            .background(Color(NSColor.controlBackgroundColor))
-                            .cornerRadius(6)
-                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.purple.opacity(0.3), lineWidth: 1))
-                            .padding(.top, 8)
+                        }
+                    )
+                    .cornerRadius(sharedCornerRadius)
+                    .onTapGesture {
+                        withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.82)) {
+                            activeTab = fileName
                         }
                     }
                 }
 
-                Divider()
+                Spacer()
 
-                HStack(spacing: 8) {
-                    Image(systemName: "exclamationmark.octagon.fill")
-                        .foregroundColor(.red)
-                    VStack(alignment: .leading) {
-                        Text("VMEngine.swift:12:13: Error: Use of unresolved identifier 'VZVirtualMachine'")
-                            .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                            .foregroundColor(.red)
-                        Text("Fix-it: Import Virtualization framework or verify build settings")
-                            .font(.system(size: 9))
+                Button(action: {
+                    withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.82)) {
+                        showingFindReplace.toggle()
+                    }
+                }) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 11))
+                }
+                .buttonStyle(.plain)
+                .padding(6)
+                .background(Color.white.opacity(0.08))
+                .cornerRadius(sharedCornerRadius)
+            }
+            .padding(6)
+            .background(Color.black.opacity(0.05))
+            .cornerRadius(sharedCornerRadius)
+
+            // Find and Replace Bar
+            if showingFindReplace {
+                HStack(spacing: 12) {
+                    HStack {
+                        Image(systemName: "magnifyingglass")
                             .foregroundColor(.secondary)
+                        TextField("Find", text: $findText)
+                            .textFieldStyle(.plain)
+                            .font(.system(size: 11))
                     }
-                    Spacer()
-                    Button("Fix-it") {
-                        codeText = "import Virtualization\n" + codeText
-                        viewModel.logs.append("Applied automatic diagnostic Fix-it on VMEngine.swift")
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.white.opacity(0.08))
+                    .cornerRadius(6)
+
+                    HStack {
+                        Image(systemName: "arrow.right.arrow.left")
+                            .foregroundColor(.secondary)
+                        TextField("Replace", text: $replaceText)
+                            .textFieldStyle(.plain)
+                            .font(.system(size: 11))
                     }
-                    .tint(.red)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.white.opacity(0.08))
+                    .cornerRadius(6)
+
+                    Button("Replace All") {
+                        if !findText.isEmpty {
+                            codeText = codeText.replacingOccurrences(of: findText, with: replaceText)
+                            viewModel.logs.append("Replaced occurrences of '\(findText)' with '\(replaceText)'")
+                        }
+                    }
                     .controlSize(.small)
                 }
                 .padding(8)
-                .background(Color.red.opacity(0.05))
-                .cornerRadius(6)
+                .background(Color.black.opacity(0.03))
+                .cornerRadius(sharedCornerRadius)
+                .transition(.asymmetric(insertion: .opacity.combined(with: .scale(scale: 0.95)), removal: .opacity))
+            }
+
+            // Gutter & Main Text Editor Pane
+            GroupBox {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(alignment: .top, spacing: 12) {
+                        // Gutter Diagnostics Column
+                        VStack(spacing: 4) {
+                            ForEach(1...18, id: \.self) { line in
+                                HStack(spacing: 4) {
+                                    Text("\(line)")
+                                        .font(.system(size: 9, design: .monospaced))
+                                        .foregroundColor(.secondary)
+                                        .frame(width: 14, alignment: .trailing)
+
+                                    if line == 12 {
+                                        Circle()
+                                            .fill(Color.red)
+                                            .frame(width: 6, height: 6)
+                                            .help("Error breakpoint")
+                                    } else if line == 4 {
+                                        Image(systemName: "breakpoint.fill")
+                                            .font(.system(size: 7))
+                                            .foregroundColor(.blue)
+                                    } else {
+                                        Spacer()
+                                            .frame(width: 6)
+                                    }
+                                }
+                                .frame(height: 14)
+                            }
+                        }
+                        .frame(width: 32)
+                        .padding(.top, 4)
+
+                        Divider()
+
+                        // Editor Workspace Code Panel ( Legible Static Content Background )
+                        VStack(alignment: .leading, spacing: 0) {
+                            TextEditor(text: $codeText)
+                                .font(.system(size: 12, design: .monospaced))
+                                .frame(height: 250)
+                                .background(Color(NSColor.textBackgroundColor))
+                                .cornerRadius(sharedCornerRadius)
+                                .onChange(of: codeText) { newValue in
+                                    if newValue.hasSuffix(".") {
+                                        showingAutocomplete = true
+                                    }
+                                }
+
+                            // Autocomplete Hover documentation popup
+                            if showingAutocomplete {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack {
+                                        Text("SourceKit-LSP Autocomplete Suggestions")
+                                            .font(.system(size: 9, weight: .bold))
+                                            .foregroundColor(.purple)
+                                        Spacer()
+                                        Button(action: { showingAutocomplete = false }) {
+                                            Image(systemName: "xmark.circle")
+                                                .font(.system(size: 9))
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+
+                                    ForEach(autocompleteSuggestions, id: \.self) { suggestion in
+                                        Button(action: {
+                                            codeText += suggestion
+                                            showingAutocomplete = false
+                                            viewModel.logs.append("Completed code with LSP: \(suggestion)")
+                                        }) {
+                                            Text("• \(suggestion)")
+                                                .font(.system(size: 10, design: .monospaced))
+                                                .foregroundColor(.primary)
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                                .padding(8)
+                                .background(Color.white.opacity(0.12))
+                                .cornerRadius(6)
+                                .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.purple.opacity(0.3), lineWidth: 1))
+                                .padding(.top, 8)
+                            }
+                        }
+
+                        Divider()
+
+                        // Editor Glass Minimap Column
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("MINIMAP")
+                                .font(.system(size: 8, weight: .semibold))
+                                .foregroundColor(.secondary)
+
+                            ScrollView {
+                                VStack(alignment: .leading, spacing: 1) {
+                                    ForEach(0..<45, id: \.self) { line in
+                                        let lineLength = CGFloat.random(in: 12...68)
+                                        RoundedRectangle(cornerRadius: 1)
+                                            .fill(line == 12 ? Color.red.opacity(0.6) : Color.primary.opacity(0.18))
+                                            .frame(width: lineLength, height: 2)
+                                    }
+                                }
+                            }
+                            .frame(width: 72, height: 230)
+                            .background(Color.white.opacity(0.03))
+                            .cornerRadius(4)
+                        }
+                    }
+
+                    Divider()
+
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.octagon.fill")
+                            .foregroundColor(.red)
+                        VStack(alignment: .leading) {
+                            Text("VMEngine.swift:12:13: Error: Use of unresolved identifier 'VZVirtualMachine'")
+                                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                                .foregroundColor(.red)
+                            Text("Fix-it: Import Virtualization framework or verify build settings")
+                                .font(.system(size: 9))
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Button("Fix-it") {
+                            codeText = "import Virtualization\n" + codeText
+                            viewModel.logs.append("Applied automatic diagnostic Fix-it on VMEngine.swift")
+                        }
+                        .tint(.red)
+                        .controlSize(.small)
+                    }
+                    .padding(8)
+                    .background(Color.red.opacity(0.05))
+                    .cornerRadius(6)
+                }
+            } label: {
+                Label("Editor Pane Frame", systemImage: "macwindow")
             }
         }
     }

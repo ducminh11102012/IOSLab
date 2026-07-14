@@ -18,7 +18,7 @@ on:
 jobs:
   build-and-release:
     name: Build and Publish Unsigned Release
-    runs-on: macos-14 # Runs on Apple Silicon macos runner to support native Xcode builds
+    runs-on: macos-latest # Runs on modern macos runner to support native Xcode builds
     permissions:
       contents: write # Explicitly grant write access to push the release assets and tags
 
